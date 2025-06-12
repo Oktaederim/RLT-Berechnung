@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- EVENT HANDLERS & UI LOGIC ---
     function resetToDefaults() {
-        dom.tempAussen.value = -10.0; dom.rhAussen.value = 80.0;
+        dom.tempAussen.value = 20.0; dom.rhAussen.value = 50.0;
         dom.tempZuluft.value = 20.0; dom.rhZuluft.value = 50.0;
         dom.xZuluft.value = 7.26; dom.volumenstrom.value = 5000;
         dom.kuehlerAktiv.checked = true; dom.tempVorerhitzer.value = 5.0;
