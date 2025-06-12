@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- GLOBAL STATE & DOM ELEMENT CACHING ---
-    let referenceCost = null;
+    let referenceState = null;
     let currentTotalCost = 0;
 
     const dom = {
@@ -35,10 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Outputs
         resultsCard: document.getElementById('results-card'),
-        kostenHeizung: document.getElementById('kostenHeizung'),
-        kostenKuehlung: document.getElementById('kostenKuehlung'),
         kostenGesamt: document.getElementById('kostenGesamt'),
+        referenceDetails: document.getElementById('reference-details'),
         kostenAenderung: document.getElementById('kostenAenderung'),
+        tempAenderung: document.getElementById('tempAenderung'),
+        rhAenderung: document.getElementById('rhAenderung'),
+        volumenAenderung: document.getElementById('volumenAenderung'),
         setReferenceBtn: document.getElementById('setReferenceBtn'),
     };
 
@@ -51,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else return 611.2 * Math.exp((22.46 * T) / (272.62 + T));
     }
     function getX(T, rH, p) {
-        if (p <= 0) return Infinity; // Prevent division by zero if pressure is invalid
+        if (p <= 0) return Infinity;
         const p_s = getPs(T);
         const p_v = (rH / 100) * p_s;
         if (p_v >= p) return Infinity;
@@ -78,11 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- MAIN CALCULATION FUNCTION ---
     function calculateAll() {
-        const allInputFields = [
-            dom.tempAussen, dom.rhAussen, dom.tempZuluft, dom.rhZuluft, dom.xZuluft,
-            dom.volumenstrom, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer
-        ];
-        for (const field of allInputFields) {
+        for (const field of [dom.tempAussen, dom.rhAussen, dom.tempZuluft, dom.rhZuluft, dom.xZuluft, dom.volumenstrom, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer]) {
             if (field && field.value === '') {
                 dom.resultsCard.innerHTML = `<div class="process-overview process-error">Fehler: Ein Eingabefeld ist leer. Bitte alle Felder ausfüllen.</div>`;
                 return;
@@ -103,8 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dom.resultsCard.innerHTML = `<div class="process-overview process-error">Fehler: Ungültige Zahl in einem Eingabefeld.</div>`;
             return;
         }
-        
-        // --- Process from here ---
+
         const aussen = { t: inputs.tempAussen, rh: inputs.rhAussen, x: getX(inputs.tempAussen, inputs.rhAussen, inputs.druck) };
         aussen.h = getH(aussen.t, aussen.x);
 
@@ -158,25 +155,23 @@ document.addEventListener('DOMContentLoaded', () => {
         calculateAndRenderCosts(processSteps, inputs);
     }
 
-    // --- RENDER FUNCTIONS ---
     function renderResults(aussen, steps) {
         let html = `<h2>Anlagenprozess & Zustände</h2>`;
         if (steps.length === 0) {
             html += `<div class="process-overview process-success">Idealzustand: Keine Luftbehandlung erforderlich.</div>`;
-            dom.resultsCard.innerHTML = html;
-            return;
+        } else {
+            const overview = steps.map(s => s.name.split(' ')[1]).join(' → ');
+            html += `<div class="process-overview process-info">Prozesskette: ${overview}</div>`;
+            const createResultItem = (label, value, unit) => `<div class="result-item"><span class="label">${label}</span><span class="value">${value} ${unit}</span></div>`;
+            const createStateBlock = (state) => createResultItem('Temperatur', state.t.toFixed(1), '°C') + createResultItem('Relative Feuchte', state.rh.toFixed(1), '%') + createResultItem('Absolute Feuchte', state.x.toFixed(2), 'g/kg') + createResultItem('Enthalpie', state.h.toFixed(2), 'kJ/kg');
+            html += `<div class="process-step"><h4>🌍 Außenluft (Start)</h4><div class="result-grid">${createStateBlock(aussen)}</div></div>`;
+            steps.forEach(step => {
+                html += `<div class="process-step"><h4>${step.name}</h4><div class="result-grid">`;
+                if (step.leistung > 0) html += createResultItem('Leistung', step.leistung.toFixed(2), 'kW');
+                if (step.kondensat > 0) html += createResultItem('Kondensat', step.kondensat.toFixed(2), 'kg/h');
+                html += `</div><hr><h5>Zustand danach:</h5><div class="result-grid">${createStateBlock(step.stateAfter)}</div></div>`;
+            });
         }
-        const overview = steps.map(s => s.name.split(' ')[1]).join(' → ');
-        html += `<div class="process-overview process-info">Prozesskette: ${overview}</div>`;
-        const createResultItem = (label, value, unit) => `<div class="result-item"><span class="label">${label}</span><span class="value">${value} ${unit}</span></div>`;
-        const createStateBlock = (state) => createResultItem('Temperatur', state.t.toFixed(1), '°C') + createResultItem('Relative Feuchte', state.rh.toFixed(1), '%') + createResultItem('Absolute Feuchte', state.x.toFixed(2), 'g/kg') + createResultItem('Enthalpie', state.h.toFixed(2), 'kJ/kg');
-        html += `<div class="process-step"><h4>🌍 Außenluft (Start)</h4><div class="result-grid">${createStateBlock(aussen)}</div></div>`;
-        steps.forEach(step => {
-            html += `<div class="process-step"><h4>${step.name}</h4><div class="result-grid">`;
-            if (step.leistung > 0) html += createResultItem('Leistung', step.leistung.toFixed(2), 'kW');
-            if (step.kondensat > 0) html += createResultItem('Kondensat', step.kondensat.toFixed(2), 'kg/h');
-            html += `</div><hr><h5>Zustand danach:</h5><div class="result-grid">${createStateBlock(step.stateAfter)}</div></div>`;
-        });
         dom.resultsCard.innerHTML = html;
     }
 
@@ -191,25 +186,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const kostenKuehlung = (kaelteLeistung / inputs.eer) * inputs.preisStrom;
         currentTotalCost = kostenHeizung + kostenKuehlung;
         
-        dom.kostenHeizung.textContent = `${kostenHeizung.toFixed(2)} €/h`;
-        dom.kostenKuehlung.textContent = `${kostenKuehlung.toFixed(2)} €/h`;
         dom.kostenGesamt.textContent = `${currentTotalCost.toFixed(2)} €/h`;
 
-        if (referenceCost !== null) {
-            const changeAbs = currentTotalCost - referenceCost;
-            const changePerc = referenceCost > 0 ? (changeAbs / referenceCost) * 100 : 0;
-            const sign = changeAbs > 0 ? '+' : '';
+        if (referenceState !== null) {
+            dom.referenceDetails.classList.remove('hidden');
+            const changeAbs = currentTotalCost - referenceState.cost;
+            const changePerc = referenceState.cost > 0 ? (changeAbs / referenceState.cost) * 100 : 0;
+            const sign = changeAbs >= 0 ? '+' : '';
+            
             dom.kostenAenderung.textContent = `${sign}${changeAbs.toFixed(2)} €/h (${sign}${changePerc.toFixed(1)} %)`;
             dom.kostenAenderung.className = 'cost-value';
             if (changeAbs < -TOLERANCE) dom.kostenAenderung.classList.add('saving');
             else if (changeAbs > TOLERANCE) dom.kostenAenderung.classList.add('expense');
+
+            const deltaTemp = inputs.tempZuluft - referenceState.temp;
+            dom.tempAenderung.textContent = `${deltaTemp >= 0 ? '+' : ''}${deltaTemp.toFixed(1)} °C`;
+            const deltaRh = inputs.rhZuluft - referenceState.rh;
+            dom.rhAenderung.textContent = `${deltaRh >= 0 ? '+' : ''}${deltaRh.toFixed(1)} %`;
+            const deltaVol = inputs.volumenstrom - referenceState.vol;
+            dom.volumenAenderung.textContent = `${deltaVol >= 0 ? '+' : ''}${deltaVol.toFixed(0)} m³/h`;
+
         } else {
-            dom.kostenAenderung.textContent = '--';
-            dom.kostenAenderung.className = 'cost-value';
+            dom.referenceDetails.classList.add('hidden');
         }
     }
 
-    // --- EVENT HANDLERS & UI LOGIC ---
+    function handleSetReference() {
+        referenceState = {
+            cost: currentTotalCost,
+            temp: parseFloat(dom.tempZuluft.value),
+            rh: parseFloat(dom.rhZuluft.value),
+            vol: parseFloat(dom.volumenstrom.value)
+        };
+        dom.setReferenceBtn.textContent = 'Referenz Gesetzt!';
+        dom.setReferenceBtn.classList.add('activated');
+        setTimeout(() => {
+            dom.setReferenceBtn.textContent = 'Neue Referenz festlegen';
+            dom.setReferenceBtn.classList.remove('activated');
+        }, 2000);
+        calculateAll();
+    }
+    
     function resetToDefaults() {
         dom.tempAussen.value = 20.0; dom.rhAussen.value = 50.0;
         dom.tempZuluft.value = 20.0; dom.rhZuluft.value = 50.0;
@@ -219,25 +236,13 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.preisWaerme.value = 0.12; dom.preisStrom.value = 0.30;
         dom.eer.value = 3.5;
         
-        // Reset sliders and their labels
         dom.volumenstromSlider.value = 5000; dom.volumenstromLabel.textContent = 5000;
         dom.tempZuluftSlider.value = 20.0; dom.tempZuluftLabel.textContent = '20.0';
         dom.rhZuluftSlider.value = 50.0; dom.rhZuluftLabel.textContent = '50.0';
 
-        referenceCost = null; // Also reset the cost reference
-        handleKuehlerToggle(); // Re-apply UI rules
+        referenceState = null;
+        handleKuehlerToggle();
         handleFeuchteSollChange();
-    }
-    
-    function handleSetReference() {
-        referenceCost = currentTotalCost;
-        dom.setReferenceBtn.textContent = 'Referenz Gesetzt!';
-        dom.setReferenceBtn.classList.add('activated');
-        setTimeout(() => {
-            dom.setReferenceBtn.textContent = 'Neue Referenz festlegen';
-            dom.setReferenceBtn.classList.remove('activated');
-        }, 2000);
-        calculateAll();
     }
 
     function handleFeuchteSollChange() {
@@ -275,14 +280,9 @@ document.addEventListener('DOMContentLoaded', () => {
         sync(dom.rhZuluftSlider, dom.rhZuluft, dom.rhZuluftLabel, true);
     }
     
-    // Setup event listeners for all standard inputs
-    const allNumberInputs = [
-        dom.tempAussen, dom.rhAussen, dom.tempZuluft, dom.rhZuluft, dom.xZuluft,
-        dom.volumenstrom, dom.tempVorerhitzer, dom.druck, dom.preisWaerme,
-        dom.preisStrom, dom.eer
-    ];
+    const allNumberInputs = [ dom.tempAussen, dom.rhAussen, dom.tempZuluft, dom.rhZuluft, dom.xZuluft, dom.volumenstrom, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer ];
     allNumberInputs.forEach(input => {
-        if(input) input.addEventListener('input', calculateAll);
+        if (input) input.addEventListener('input', calculateAll);
     });
     
     dom.feuchteSollTyp.addEventListener('change', handleFeuchteSollChange);
@@ -291,5 +291,5 @@ document.addEventListener('DOMContentLoaded', () => {
     dom.resetBtn.addEventListener('click', resetToDefaults);
     
     syncInputsAndSliders();
-    handleKuehlerToggle(); // Sets initial UI state
+    handleKuehlerToggle();
 });
