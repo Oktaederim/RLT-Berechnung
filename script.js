@@ -33,6 +33,8 @@ const dom = {
 
     // Outputs
     resultsCard: document.getElementById('results-card'),
+    kostenHeizung: document.getElementById('kostenHeizung'),
+    kostenKuehlung: document.getElementById('kostenKuehlung'),
     kostenGesamt: document.getElementById('kostenGesamt'),
     kostenAenderung: document.getElementById('kostenAenderung'),
     setReferenceBtn: document.getElementById('setReferenceBtn'),
@@ -189,6 +191,9 @@ function calculateAndRenderCosts(steps, inputs) {
     const kostenHeizung = heizLeistung * inputs.preisWaerme;
     const kostenKuehlung = (kaelteLeistung / inputs.eer) * inputs.preisStrom;
     currentTotalCost = kostenHeizung + kostenKuehlung;
+    
+    dom.kostenHeizung.textContent = `${kostenHeizung.toFixed(2)} €/h`;
+    dom.kostenKuehlung.textContent = `${kostenKuehlung.toFixed(2)} €/h`;
     dom.kostenGesamt.textContent = `${currentTotalCost.toFixed(2)} €/h`;
 
     // Compare with reference
@@ -216,7 +221,7 @@ function handleSetReference() {
         dom.setReferenceBtn.textContent = 'Neue Referenz festlegen';
         dom.setReferenceBtn.classList.remove('activated');
     }, 2000);
-    calculateAll(); // Recalculate to show 0% change
+    calculateAll();
 }
 
 function handleFeuchteSollChange() {
@@ -241,13 +246,15 @@ function handleKuehlerToggle() {
 function syncInputsAndSliders() {
     const sync = (slider, input, label, isFloat = false) => {
         slider.addEventListener('input', () => {
-            input.value = slider.value;
-            label.textContent = isFloat ? parseFloat(slider.value).toFixed(1) : slider.value;
+            const value = isFloat ? parseFloat(slider.value).toFixed(1) : slider.value;
+            input.value = value;
+            label.textContent = value;
             calculateAll();
         });
         input.addEventListener('input', () => {
-            slider.value = input.value;
-            label.textContent = isFloat ? parseFloat(input.value).toFixed(1) : input.value;
+            const value = isFloat ? parseFloat(input.value).toFixed(1) : input.value;
+            slider.value = value;
+            label.textContent = value;
         });
     };
     sync(dom.volumenstromSlider, dom.volumenstrom, dom.volumenstromLabel);
