@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RLT-Anlagen Rechner (Profi-Version)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🌬️ RLT-Anlagen Rechner</h1>
+        <p class="subtitle">Interaktive Berechnung von Zuständen, Leistungen und Energiekosten</p>
+    </header>
+
+    <main>
+        <div class="card">
+            <h2>Anlagenkonfiguration & Zustände</h2>
+            <div class="grid-container config-grid">
+                <div>
+                    <h4>🌍 Außenluft</h4>
+                    <div class="input-group">
+                        <label for="tempAussen">Temperatur (°C)</label>
+                        <input type="number" id="tempAussen" value="-10.0" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label for="rhAussen">Relative Feuchte (%)</label>
+                        <input type="number" id="rhAussen" value="80.0" step="0.1">
+                    </div>
+                </div>
+
+                <div>
+                    <h4>💨 Zuluft (Sollwert)</h4>
+                    <div class="input-group">
+                        <label for="tempZuluft">Temperatur (°C)</label>
+                        <input type="number" id="tempZuluft" value="20.0" step="0.1">
+                    </div>
+                    <div class="input-group" id="sollFeuchteWrapper">
+                        <label>
+                            Feuchte-Sollwert
+                            <select id="feuchteSollTyp">
+                                <option value="rh" selected>Relative Feuchte (%)</option>
+                                <option value="x">Absolute Feuchte (g/kg)</option>
+                            </select>
+                        </label>
+                        <input type="number" id="rhZuluft" value="50.0" step="0.1">
+                        <input type="number" id="xZuluft" value="7.26" step="0.1" class="hidden">
+                    </div>
+                </div>
+
+                <div>
+                    <h4>🔧 Anlagenparameter</h4>
+                     <div class="input-group">
+                        <label for="volumenstrom">Luft-Volumenstrom (m³/h)</label>
+                        <input type="number" id="volumenstrom" value="5000" step="100">
+                    </div>
+                    <div class="input-group checkbox-group">
+                        <input type="checkbox" id="kuehlerAktiv" checked>
+                        <label for="kuehlerAktiv">Kühler / Entfeuchtung aktiv</label>
+                    </div>
+                    <div class="input-group">
+                        <label for="tempVorerhitzer">Frostschutz-Temp. nach VE (°C)</label>
+                        <input type="number" id="tempVorerhitzer" value="5.0" step="0.1">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>⚡ Energie- & Kostenanalyse</h2>
+            <div class="grid-container cost-grid">
+                <div>
+                    <h4>Kostensätze</h4>
+                    <div class="input-group">
+                        <label for="preisWaerme">Preis Wärme (€/kWh)</label>
+                        <input type="number" id="preisWaerme" value="0.12" step="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label for="preisStrom">Preis Strom (€/kWh)</label>
+                        <input type="number" id="preisStrom" value="0.30" step="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label for="eer">Kälteleistungszahl (EER / COP)</label>
+                        <input type="number" id="eer" value="3.5" step="0.1">
+                    </div>
+                </div>
+                <div class="slider-section">
+                    <h4>Sollwert-Anpassung (Live-Analyse)</h4>
+                    <div class="slider-group">
+                        <label>Volumenstrom: <span id="volumenstromLabel">5000</span> m³/h</label>
+                        <input type="range" id="volumenstromSlider" min="1000" max="20000" step="100" value="5000">
+                    </div>
+                     <div class="slider-group">
+                        <label>Zuluft-Temperatur: <span id="tempZuluftLabel">20.0</span> °C</label>
+                        <input type="range" id="tempZuluftSlider" min="18" max="26" step="0.1" value="20.0">
+                    </div>
+                     <div class="slider-group" id="rhZuluftSliderGroup">
+                        <label>Zuluft-Rel. Feuchte: <span id="rhZuluftLabel">50.0</span> %</label>
+                        <input type="range" id="rhZuluftSlider" min="30" max="70" step="0.5" value="50.0">
+                    </div>
+                </div>
+                <div class="cost-output-section">
+                    <h4>Betriebskosten-Analyse</h4>
+                    <div class="cost-display">
+                        <span class="cost-label">Gesamtkosten (aktuell):</span>
+                        <span class="cost-value" id="kostenGesamt">0.00 €/h</span>
+                    </div>
+                    <hr>
+                    <button id="setReferenceBtn">Referenzkosten festlegen</button>
+                    <div class="cost-display change">
+                        <span class="cost-label">Änderung zur Referenz:</span>
+                        <span class="cost-value" id="kostenAenderung">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="results-card">
+            </div>
+
+    </main>
+    <footer class="footer">
+        <p>Profi-Rechner | Erstellt mit Gemini</p>
+    </footer>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
