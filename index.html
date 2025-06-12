@@ -8,6 +8,8 @@
 </head>
 <body>
 
+<button id="resetBtn" title="Alle Werte auf Standard zurücksetzen">⟲</button>
+
 <div class="container">
     <header>
         <h1>🌬️ RLT-Anlagen Rechner</h1>
@@ -18,7 +20,6 @@
         <div class="card">
             <div class="card-header">
                 <h2>Anlagenkonfiguration & Zustände</h2>
-                <button id="resetBtn" title="Alle Werte auf Standard zurücksetzen">⟲ Reset</button>
             </div>
             <div class="main-config-section">
                 <h4>Hauptkomponenten</h4>
@@ -36,7 +37,7 @@
                     <h4>🌍 Außenluft</h4>
                     <div class="input-group">
                         <label for="tempAussen">Temperatur (°C)</label>
-                        <input type="number" id="tempAussen" value="20" step="0.1">
+                        <input type="number" id="tempAussen" value="20.0" step="0.1">
                     </div>
                     <div class="input-group">
                         <label for="rhAussen">Relative Feuchte (%)</label>
@@ -116,24 +117,29 @@
                 </div>
                 <div class="cost-output-section">
                     <h4>Betriebskosten-Analyse</h4>
-                     <div class="cost-display">
-                        <span class="cost-label">Heizung (VE+NE):</span>
-                        <span class="cost-value" id="kostenHeizung">0.00 €/h</span>
-                    </div>
-                    <div class="cost-display">
-                        <span class="cost-label">Kühlung:</span>
-                        <span class="cost-value" id="kostenKuehlung">0.00 €/h</span>
-                    </div>
-                     <hr>
                     <div class="cost-display total">
-                        <span class="cost-label">Gesamtkosten:</span>
+                        <span class="cost-label">Aktuelle Gesamtkosten:</span>
                         <span class="cost-value" id="kostenGesamt">0.00 €/h</span>
                     </div>
                     <hr>
-                    <button id="setReferenceBtn">Referenzkosten festlegen</button>
-                    <div class="cost-display change">
-                        <span class="cost-label">Änderung zur Referenz:</span>
-                        <span class="cost-value" id="kostenAenderung">--</span>
+                    <button id="setReferenceBtn">Referenz festlegen</button>
+                    <div id="reference-details" class="hidden">
+                        <div class="cost-display change">
+                            <span class="cost-label">Δ Kosten:</span>
+                            <span class="cost-value" id="kostenAenderung">--</span>
+                        </div>
+                        <div class="cost-display change parameter">
+                            <span class="cost-label">Δ Temperatur:</span>
+                            <span class="cost-value" id="tempAenderung">--</span>
+                        </div>
+                        <div class="cost-display change parameter">
+                            <span class="cost-label">Δ Feuchte:</span>
+                            <span class="cost-value" id="rhAenderung">--</span>
+                        </div>
+                        <div class="cost-display change parameter">
+                            <span class="cost-label">Δ Volumenstrom:</span>
+                            <span class="cost-value" id="volumenAenderung">--</span>
+                        </div>
                     </div>
                 </div>
             </div>
