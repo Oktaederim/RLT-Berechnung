@@ -218,6 +218,7 @@ input[type="range"]::-moz-range-thumb {
     min-width: 80px;
     text-align: right;
     font-weight: bold;
+    white-space: nowrap; /* Diese Zeile verhindert den Zeilenumbruch */
 }
 .cost-display .cost-label { font-weight: 500;}
 .cost-display.total .cost-value { color: var(--danger-color); }
