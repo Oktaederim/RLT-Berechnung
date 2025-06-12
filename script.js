@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Outputs
         resultsCard: document.getElementById('results-card'),
         kostenGesamt: document.getElementById('kostenGesamt'),
-        referenceDetails: document.getElementById('reference-details'),
+        referenceDetails: document.getElementById('reference-details'), // KORRIGIERT: Dieses Element wird jetzt gefunden
         kostenAenderung: document.getElementById('kostenAenderung'),
         tempAenderung: document.getElementById('tempAenderung'),
         rhAenderung: document.getElementById('rhAenderung'),
@@ -186,6 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const kostenKuehlung = (kaelteLeistung / inputs.eer) * inputs.preisStrom;
         currentTotalCost = kostenHeizung + kostenKuehlung;
         
+        dom.kostenHeizung.textContent = `${kostenHeizung.toFixed(2)} €/h`;
+        dom.kostenKuehlung.textContent = `${kostenKuehlung.toFixed(2)} €/h`;
         dom.kostenGesamt.textContent = `${currentTotalCost.toFixed(2)} €/h`;
 
         if (referenceState !== null) {
