@@ -220,20 +220,20 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.costDetailsContainer.innerHTML = costHtml;
         document.getElementById('setReferenceBtn').addEventListener('click', handleSetReference);
 
-        const deltaTemp = inputs.tempZuluft - (referenceState ? referenceState.temp : inputs.tempZuluft);
-        const deltaRh = inputs.rhZuluft - (referenceState ? referenceState.rh : inputs.rhZuluft);
-        const deltaVol = inputs.volumenstrom - (referenceState ? referenceState.vol : inputs.volumenstrom);
+        const deltaTemp = inputs.tempZuluft - referenceState.temp;
+        const deltaRh = inputs.rhZuluft - referenceState.rh;
+        const deltaVol = inputs.volumenstrom - referenceState.vol;
 
-        let deltaHtml;
-        if (referenceState) {
-            const changeAbs = currentTotalCost - referenceState.cost;
-            const changePerc = referenceState.cost > 0 ? (changeAbs / referenceState.cost) * 100 : 0;
-            const sign = changeAbs >= 0 ? '+' : '';
-            const changeClass = changeAbs < -TOLERANCE ? 'saving' : (changeAbs > TOLERANCE ? 'expense' : '');
-            deltaHtml = `
-                <div class="cost-display change">
-                    <span class="cost-label">Δ Kosten:</span>
-                    <span class="cost-value <span class="math-inline">\{changeClass\}"\></span>{sign}<span class="math-inline">\{changeAbs\.toFixed\(2\)\} €/h \(</span>{sign}<span class="math-inline">\{changePerc\.toFixed\(1\)\} %\)</span\>
+        const changeAbs = currentTotalCost - referenceState.cost;
+        const changePerc = referenceState.cost > 0 ? (changeAbs / referenceState.cost) * 100 : 0;
+        const sign = changeAbs >= 0 ? '+' : '';
+        const changeClass = changeAbs < -TOLERANCE ? 'saving' : (changeAbs > TOLERANCE ? 'expense' : '');
+        
+        dom.referenceDetails.innerHTML = `
+            <hr>
+            <div class="cost-display change">
+                <span class="cost-label">Δ Kosten:</span>
+                <span class="cost-value <span class="math-inline">\{changeClass\}"\></span>{sign}<span class="math-inline">\{changeAbs\.toFixed\(2\)\} €/h \(</span>{sign}<span class="math-inline">\{changePerc\.toFixed\(1\)\} %\)</span\>
 </div\>
 <div class\="cost\-display change parameter"\>
 <span class\="cost\-label"\>Δ Temperatur\:</span\>
@@ -246,16 +246,8 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class\="cost\-display change parameter"\>
 <span class\="cost\-label"\>Δ Volumenstrom\:</span\>
 <span class\="cost\-value"\></span>{deltaVol >= 0 ? '+' : ''}${deltaVol.toFixed(0)} m³/h</span>
-                </div>
-            `;
-        } else {
-            deltaHtml = `
-                 <div class="cost-display change parameter">
-                    <span class="cost-label">Vergleichswerte werden nach Setzen der Referenz angezeigt.</span>
-                </div>
-            `;
-        }
-        dom.referenceDetails.innerHTML = `<hr>${deltaHtml}`;
+            </div>
+        `;
     }
 
     function handleSetReference() {
@@ -273,4 +265,50 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetToDefaults() {
         dom.tempAussen.value = 20.0; dom.rhAussen.value = 50.0;
         dom.tempZuluft.value = 20.0; dom.rhZuluft.value = 50.0;
-        dom.xZuluft.value = 7.26; dom.volumenstrom.value = 50
+        dom.xZuluft.value = 7.26; dom.volumenstrom.value = 5000;
+        dom.kuehlerAktiv.checked = true; dom.tempVorerhitzer.value = 5.0;
+        dom.druck.value = 1013.25; dom.feuchteSollTyp.value = 'rh';
+        dom.preisWaerme.value = 0.12; dom.preisStrom.value = 0.30;
+        dom.eer.value = 3.5;
+        
+        dom.volumenstromSlider.max = 20000;
+        
+        resetSlidersToRef(true);
+        
+        dom.resetSlidersBtn.disabled = true;
+        handleKuehlerToggle();
+        handleFeuchteSollChange();
+        setInitialReference();
+    }
+    
+    function resetSlidersToRef(toInitialDefaults = false) {
+        let targetState;
+        const initialDefaults = { temp: 20.0, rh: 50.0, vol: 5000 };
+        
+        if (toInitialDefaults || !referenceState) {
+            targetState = initialDefaults;
+        } else {
+            targetState = referenceState;
+        }
+
+        dom.tempZuluft.value = targetState.temp.toFixed(1);
+        dom.rhZuluft.value = targetState.rh.toFixed(1);
+        dom.volumenstrom.value = targetState.vol;
+        
+        dom.tempZuluft.dispatchEvent(new Event('input'));
+        dom.rhZuluft.dispatchEvent(new Event('input'));
+        dom.volumenstrom.dispatchEvent(new Event('input'));
+    }
+
+    function handleFeuchteSollChange() {
+        const isRh = dom.feuchteSollTyp.value === 'rh';
+        dom.rhZuluft.classList.toggle('hidden', !isRh);
+        dom.xZuluft.classList.toggle('hidden', isRh);
+        dom.rhZuluftSliderGroup.style.display = isRh ? 'block' : 'none';
+        calculateAll();
+    }
+
+    function handleKuehlerToggle() {
+        const isActive = dom.kuehlerAktiv.checked;
+        dom.sollFeuchteWrapper.style.opacity = isActive ? '1' : '0.5';
+        ['feuchteSoll
