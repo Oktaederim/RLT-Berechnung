@@ -200,7 +200,7 @@ input:checked + .slider:before { transform: translateX(26px); }
     border-radius: 20px;
     padding: 0.2rem 0.8rem;
     cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, opacity 0.2s;
 }
 #resetSlidersBtn:hover:not(:disabled) {
     background-color: var(--primary-color);
@@ -210,6 +210,7 @@ input:checked + .slider:before { transform: translateX(26px); }
     border-color: #ccc;
     color: #ccc;
     cursor: not-allowed;
+    opacity: 0.6;
 }
 .slider-group { margin-bottom: 1.5rem; margin-top: 1rem;}
 .slider-group label { font-weight: 500; }
