@@ -72,7 +72,8 @@ h4 { font-size: 1.1rem; margin-top: 0; color: #333; border-bottom: 1px solid #ee
 
 .grid-container { display: grid; gap: 2rem; }
 .config-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-.cost-grid { grid-template-columns: 1fr 1.5fr 1.2fr; }
+.cost-inputs-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.cost-grid { grid-template-columns: 1.5fr 1fr; }
 
 .input-group { margin-bottom: 1.2rem; }
 .input-group label {
@@ -173,8 +174,9 @@ input:checked + .slider:before { transform: translateX(26px); }
 .process-error { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;}
 
 .hidden { display: none !important; }
+.invisible { visibility: hidden; opacity: 0; }
 
-/* Slider Styles */
+/* Slider & Cost Analysis Styles */
 .slider-section h4 { margin-bottom: 0; }
 #resetSlidersBtn {
     font-size: 0.9rem;
@@ -217,7 +219,6 @@ input[type="range"]::-moz-range-thumb {
     cursor: pointer; border-radius: 50%;
 }
 
-/* Cost Display */
 .cost-output-section { background: #f0f2f5; padding: 1.5rem; border-radius: 8px; }
 .cost-display {
     display: flex;
@@ -226,7 +227,7 @@ input[type="range"]::-moz-range-thumb {
     font-size: 1rem;
     margin-bottom: 0.8rem;
     text-align: left;
-    gap: 1rem; /* Gap for Safari fix */
+    gap: 1rem;
 }
 .cost-display.power-summary {
     background-color: #e9ecef;
@@ -244,11 +245,11 @@ input[type="range"]::-moz-range-thumb {
     background: #fff;
     padding: 0.3rem 0.8rem;
     border-radius: 20px;
-    min-width: 70px; /* Slightly reduced for mobile */
+    min-width: 70px;
     text-align: right;
     font-weight: bold;
     white-space: nowrap;
-    flex-shrink: 0; /* Prevents shrinking on mobile */
+    flex-shrink: 0;
 }
 .cost-display .cost-label { font-weight: 500;}
 .cost-display.total .cost-value { color: var(--danger-color); }
@@ -273,5 +274,4 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 1rem 0; }
 
 @media (max-width: 1024px) {
     .cost-grid { grid-template-columns: 1fr; gap: 2.5rem; }
-    .slider-section { padding-left: 0; }
 }
