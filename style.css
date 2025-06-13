@@ -265,7 +265,7 @@ input[type="range"]::-moz-range-thumb {
 .cost-display.total .cost-value { color: var(--danger-color); }
 .cost-display.change { margin-top: 0.5rem; font-size: 1rem; }
 .cost-display.change.parameter { font-size: 0.9rem; color: var(--label-color); margin-bottom: 0.2rem;}
-.cost-display.change .cost-value { font-size: 1rem; }
+.cost-display.change .cost-value { font-size: 1rem; background: none; padding-right: 0;}
 .cost-value.saving { color: var(--success-color) !important; }
 .cost-value.expense { color: var(--danger-color) !important; }
 
