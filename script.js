@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Main Calculation Function ---
     function calculateAll() {
-        // --- 1. Input Validation ---
+        // 1. Input Validation
         for (const field of [dom.tempAussen, dom.rhAussen, dom.tempZuluft, dom.rhZuluft, dom.xZuluft, dom.volumenstrom, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer]) {
             if (field && field.offsetParent !== null && field.value === '') {
                 dom.resultsCard.innerHTML = `<div class="process-overview process-error">Fehler: Ein sichtbares Eingabefeld ist leer. Bitte alle Felder ausfüllen.</div>`;
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // --- 2. Process Simulation ---
+        // 2. Process Simulation
         const aussen = { t: inputs.tempAussen, rh: inputs.rhAussen, x: getX(inputs.tempAussen, inputs.rhAussen, inputs.druck) };
         aussen.h = getH(aussen.t, aussen.x);
 
@@ -149,12 +149,12 @@ document.addEventListener('DOMContentLoaded', () => {
             processSteps.push({ name: '🔥 Nacherhitzer', leistung: leistung, stateAfter: { ...currentState } });
         }
 
-        // --- 3. Render all outputs ---
+        // 3. Render all outputs
         renderResults(aussen, processSteps);
         calculateAndRenderCosts(processSteps, inputs);
     }
 
-    // --- RENDER FUNCTIONS (NO MORE .innerHTML) ---
+    // --- Render Functions ---
     function renderResults(aussen, steps) {
         let html = `<h2>Anlagenprozess & Zustände</h2>`;
         if (steps.length === 0) {
@@ -199,11 +199,9 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (step.name.includes('Kühler')) kaelteLeistung += step.leistung;
         });
         
-        // Update power summary
         dom.gesamtleistungWaerme.textContent = `${heizLeistung.toFixed(2)} kW`;
         dom.gesamtleistungKaelte.textContent = `${kaelteLeistung.toFixed(2)} kW`;
 
-        // Update cost details
         const kostenHeizung = heizLeistung * inputs.preisWaerme;
         const kostenKuehlung = (kaelteLeistung / inputs.eer) * inputs.preisStrom;
         currentTotalCost = kostenHeizung + kostenKuehlung;
@@ -212,7 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.kostenKuehlung.textContent = `${kostenKuehlung.toFixed(2)} €/h`;
         dom.kostenGesamt.textContent = `${currentTotalCost.toFixed(2)} €/h`;
         
-        // Update reference comparison
         dom.setReferenceBtn.className = referenceState ? 'activated' : '';
         dom.setReferenceBtn.textContent = referenceState ? 'Neue Referenz setzen' : 'Referenz festlegen';
 
@@ -221,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const changePerc = referenceState.cost > 0 ? (changeAbs / referenceState.cost) * 100 : 0;
             const sign = changeAbs >= 0 ? '+' : '';
             const changeClass = changeAbs < -TOLERANCE ? 'saving' : (changeAbs > TOLERANCE ? 'expense' : '');
-            
+
             dom.kostenAenderung.textContent = `${sign}${changeAbs.toFixed(2)} €/h (${sign}${changePerc.toFixed(1)} %)`;
             dom.kostenAenderung.className = `cost-value ${changeClass}`;
 
@@ -234,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- EVENT HANDLERS ---
+    // --- Event Handlers ---
     function handleSetReference() {
         referenceState = {
             cost: currentTotalCost,
@@ -248,6 +245,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function resetToDefaults() {
         referenceState = null;
+        dom.resetSlidersBtn.disabled = true;
+
         dom.tempAussen.value = 20.0; dom.rhAussen.value = 50.0;
         dom.tempZuluft.value = 20.0; dom.rhZuluft.value = 50.0;
         dom.xZuluft.value = 7.26; dom.volumenstrom.value = 5000;
@@ -257,29 +256,38 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.eer.value = 3.5;
         
         dom.volumenstromSlider.max = 20000;
-        resetSlidersToRef(true);
-        dom.resetSlidersBtn.disabled = true;
         
-        handleKuehlerToggle(); // This also calls calculateAll
+        // Manually update sliders and labels before the final calculation
+        dom.volumenstromSlider.value = 5000;
+        dom.volumenstromLabel.textContent = 5000;
+        dom.tempZuluftSlider.value = 20.0;
+        dom.tempZuluftLabel.textContent = '20.0';
+        dom.rhZuluftSlider.value = 50.0;
+        dom.rhZuluftLabel.textContent = '50.0';
+        
+        handleKuehlerToggle();
         handleFeuchteSollChange();
+        calculateAll();
     }
     
-    function resetSlidersToRef(toInitialDefaults = false) {
-        let targetState;
-        const initialDefaults = { temp: 20.0, rh: 50.0, vol: 5000 };
-        targetState = (toInitialDefaults || !referenceState) ? initialDefaults : referenceState;
-
-        dom.tempZuluft.value = targetState.temp.toFixed(1);
-        dom.rhZuluft.value = targetState.rh.toFixed(1);
-        dom.volumenstrom.value = targetState.vol;
+    function resetSlidersToRef() {
+        if (!referenceState) return;
         
-        // Update sliders and labels to reflect the change
-        dom.tempZuluftSlider.value = targetState.temp;
-        dom.tempZuluftLabel.textContent = targetState.temp.toFixed(1);
-        dom.rhZuluftSlider.value = targetState.rh;
-        dom.rhZuluftLabel.textContent = targetState.rh.toFixed(1);
-        dom.volumenstromSlider.value = targetState.vol;
-        dom.volumenstromLabel.textContent = targetState.vol;
+        dom.tempZuluft.value = referenceState.temp.toFixed(1);
+        dom.rhZuluft.value = referenceState.rh.toFixed(1);
+        dom.volumenstrom.value = referenceState.vol;
+        
+        // Manually update sliders and labels
+        dom.tempZuluftSlider.value = referenceState.temp;
+        dom.tempZuluftLabel.textContent = referenceState.temp.toFixed(1);
+        dom.rhZuluftSlider.value = referenceState.rh;
+        dom.rhZuluftLabel.textContent = referenceState.rh.toFixed(1);
+
+        if (referenceState.vol > parseFloat(dom.volumenstromSlider.max)) {
+            dom.volumenstromSlider.max = referenceState.vol;
+        }
+        dom.volumenstromSlider.value = referenceState.vol;
+        dom.volumenstromLabel.textContent = referenceState.vol;
 
         calculateAll();
     }
@@ -304,6 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const value = isFloat ? parseFloat(slider.value).toFixed(1) : slider.value;
                 input.value = value;
                 label.textContent = value;
+                calculateAll();
             });
             input.addEventListener('input', () => {
                 const newValue = parseFloat(input.value);
@@ -314,6 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 slider.value = newValue;
                 label.textContent = isFloat ? newValue.toFixed(1) : newValue;
+                calculateAll();
             });
         };
         sync(dom.volumenstromSlider, dom.volumenstrom, dom.volumenstromLabel);
@@ -322,22 +332,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // --- INITIALIZATION ---
-    // Attach a single calculation call to all relevant change events
-    const allInputs = Object.values(dom);
-    allInputs.forEach(element => {
-        if(element && (element.tagName === 'INPUT' || element.tagName === 'SELECT')){
-            element.addEventListener('input', calculateAll);
-            element.addEventListener('change', calculateAll);
-        }
-    });
+    // Attach specific handlers first
+    dom.kuehlerAktiv.addEventListener('change', () => { handleKuehlerToggle(); calculateAll(); });
+    dom.feuchteSollTyp.addEventListener('change', () => { handleFeuchteSollChange(); calculateAll(); });
+    dom.resetBtn.addEventListener('click', resetToDefaults);
+    dom.resetSlidersBtn.addEventListener('click', resetSlidersToRef);
+    dom.setReferenceBtn.addEventListener('click', handleSetReference);
 
-    // Initial UI setup calls that DON'T trigger a calculation
+    // Attach sync handlers for special inputs
+    syncInputsAndSliders();
+
+    // Attach generic handlers for all other inputs that only need to trigger a calculation
+    const otherInputs = [ dom.tempAussen, dom.rhAussen, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer, dom.xZuluft ];
+    otherInputs.forEach(input => {
+        if (input) input.addEventListener('input', calculateAll);
+    });
+    
+    // Initial UI setup and first calculation
     handleKuehlerToggle();
     handleFeuchteSollChange();
-    
-    // Set up synchronization without triggering calculation
-    syncInputsAndSliders();
-    
-    // Final single calculation on load
     calculateAll();
 });
