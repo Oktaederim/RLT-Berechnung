@@ -8,8 +8,6 @@
 </head>
 <body>
 
-<button id="resetBtn" title="Alle Werte auf Standard zurücksetzen">⟲</button>
-
 <div class="container">
     <header>
         <h1>🌬️ RLT-Anlagen Rechner</h1>
@@ -20,6 +18,7 @@
         <div class="card">
             <div class="card-header">
                 <h2>Anlagenkonfiguration & Zustände</h2>
+                <button id="resetBtn" title="Alle Werte auf Standard zurücksetzen">⟲ Reset</button>
             </div>
             <div class="main-config-section">
                 <h4>Hauptkomponenten</h4>
@@ -81,8 +80,11 @@
                 </div>
             </div>
         </div>
+        
+        <div class="card" id="results-card">
+            </div>
 
-        <div class="card">
+        <div class="card" id="analysis-card">
             <h2>⚡ Energie- & Kostenanalyse</h2>
             <div class="grid-container cost-grid">
                 <div class="cost-inputs">
@@ -103,7 +105,7 @@
                 <div class="slider-section">
                     <div class="section-header">
                         <h4>Sollwert-Anpassung (Live-Analyse)</h4>
-                        <button id="resetSlidersBtn" title="Analyse auf Referenzwerte zurücksetzen" disabled>⟲ Reset Analyse</button>
+                        <button id="resetSlidersBtn" title="Analyse auf Referenzwerte zurücksetzen">⟲ Reset Analyse</button>
                     </div>
                     <div class="slider-group">
                         <label>Volumenstrom: <span id="volumenstromLabel">5000</span> m³/h</label>
@@ -128,9 +130,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="card" id="results-card">
-            </div>
     </main>
     <footer class="footer">
         <p>Profi-Rechner | Erstellt mit Gemini</p>
