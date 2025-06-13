@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsCard: document.getElementById('results-card'),
         powerDetailsContainer: document.getElementById('power-details'),
         costDetailsContainer: document.getElementById('cost-details'),
+        referenceDetails: document.getElementById('reference-details'),
     };
 
     const TOLERANCE = 0.01;
@@ -147,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             const overview = steps.map(s => s.name.split(' ')[1]).join(' → ');
             html += `<div class="process-overview process-info">Prozesskette: ${overview}</div>`;
-            const createResultItem = (label, value, unit) => `<div class="result-item"><span class="label">${label}</span><span class="value">${value} ${unit}</span></div>`;
+            const createResultItem = (label, value, unit) => `<div class="result-item"><span class="label"><span class="math-inline">\{label\}</span\><span class\="value"\></span>{value} ${unit}</span></div>`;
             const createStateBlock = (state) => createResultItem('Temperatur', state.t.toFixed(1), '°C') + createResultItem('Relative Feuchte', state.rh.toFixed(1), '%') + createResultItem('Absolute Feuchte', state.x.toFixed(2), 'g/kg') + createResultItem('Enthalpie', state.h.toFixed(2), 'kJ/kg');
             
             html += `<div class="process-step"><h4>🌍 Außenluft (Start)</h4><div class="result-grid">${createStateBlock(aussen)}</div></div>`;
@@ -187,11 +188,11 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.powerDetailsContainer.innerHTML = `
             <div class="cost-display power-summary">
                 <span class="cost-label">Gesamtleistung Wärme:</span>
-                <span class="cost-value">${heizLeistung.toFixed(2)} kW</span>
-            </div>
-            <div class="cost-display power-summary">
-                <span class="cost-label">Gesamtleistung Kälte:</span>
-                <span class="cost-value">${kaelteLeistung.toFixed(2)} kW</span>
+                <span class="cost-value"><span class="math-inline">\{heizLeistung\.toFixed\(2\)\} kW</span\>
+</div\>
+<div class\="cost\-display power\-summary"\>
+<span class\="cost\-label"\>Gesamtleistung Kälte\:</span\>
+<span class\="cost\-value"\></span>{kaelteLeistung.toFixed(2)} kW</span>
             </div>
         `;
 
@@ -202,21 +203,24 @@ document.addEventListener('DOMContentLoaded', () => {
         let costHtml = `
             <div class="cost-display">
                 <span class="cost-label">Heizkosten:</span>
-                <span class="cost-value">${kostenHeizung.toFixed(2)} €/h</span>
-            </div>
-            <div class="cost-display">
-                <span class="cost-label">Kühlkosten:</span>
-                <span class="cost-value">${kostenKuehlung.toFixed(2)} €/h</span>
+                <span class="cost-value"><span class="math-inline">\{kostenHeizung\.toFixed\(2\)\} €/h</span\>
+</div\>
+<div class\="cost\-display"\>
+<span class\="cost\-label"\>Kühlkosten\:</span\>
+<span class\="cost\-value"\></span>{kostenKuehlung.toFixed(2)} €/h</span>
             </div>
             <hr>
             <div class="cost-display total">
                 <span class="cost-label">Gesamtkosten:</span>
-                <span class="cost-value">${currentTotalCost.toFixed(2)} €/h</span>
-            </div>
-            <hr>
-            <button id="setReferenceBtn" class="${referenceState ? 'activated' : ''}">${referenceState ? 'Referenz gesetzt' : 'Referenz festlegen'}</button>
+                <span class="cost-value"><span class="math-inline">\{currentTotalCost\.toFixed\(2\)\} €/h</span\>
+</div\>
+<hr\>
+<button id\="setReferenceBtn"\></span>{referenceState ? 'Neue Referenz setzen' : 'Referenz festlegen'}</button>
         `;
+        dom.costDetailsContainer.innerHTML = costHtml;
+        document.getElementById('setReferenceBtn').addEventListener('click', handleSetReference);
 
+        // --- Render Delta / Change Display ---
         if (referenceState !== null) {
             const changeAbs = currentTotalCost - referenceState.cost;
             const changePerc = referenceState.cost > 0 ? (changeAbs / referenceState.cost) * 100 : 0;
@@ -226,28 +230,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const deltaTemp = inputs.tempZuluft - referenceState.temp;
             const deltaRh = inputs.rhZuluft - referenceState.rh;
             const deltaVol = inputs.volumenstrom - referenceState.vol;
-
-            costHtml += `
+            
+            dom.referenceDetails.innerHTML = `
+                <hr>
                 <div class="cost-display change">
                     <span class="cost-label">Δ Kosten:</span>
-                    <span class="cost-value ${changeClass}">${sign}${changeAbs.toFixed(2)} €/h (${sign}${changePerc.toFixed(1)} %)</span>
-                </div>
-                <div class="cost-display change parameter">
-                    <span class="cost-label">Δ Temperatur:</span>
-                    <span class="cost-value">${deltaTemp >= 0 ? '+' : ''}${deltaTemp.toFixed(1)} °C</span>
-                </div>
-                <div class="cost-display change parameter">
-                    <span class="cost-label">Δ Feuchte:</span>
-                    <span class="cost-value">${deltaRh >= 0 ? '+' : ''}${deltaRh.toFixed(1)} %</span>
-                </div>
-                <div class="cost-display change parameter">
-                    <span class="cost-label">Δ Volumenstrom:</span>
-                    <span class="cost-value">${deltaVol >= 0 ? '+' : ''}${deltaVol.toFixed(0)} m³/h</span>
+                    <span class="cost-value <span class="math-inline">\{changeClass\}"\></span>{sign}<span class="math-inline">\{changeAbs\.toFixed\(2\)\} €/h \(</span>{sign}<span class="math-inline">\{changePerc\.toFixed\(1\)\} %\)</span\>
+</div\>
+<div class\="cost\-display change parameter"\>
+<span class\="cost\-label"\>Δ Temperatur\:</span\>
+<span class\="cost\-value"\></span>{deltaTemp >= 0 ? '+' : ''}<span class="math-inline">\{deltaTemp\.toFixed\(1\)\} °C</span\>
+</div\>
+<div class\="cost\-display change parameter"\>
+<span class\="cost\-label"\>Δ Feuchte\:</span\>
+<span class\="cost\-value"\></span>{deltaRh >= 0 ? '+' : ''}<span class="math-inline">\{deltaRh\.toFixed\(1\)\} %</span\>
+</div\>
+<div class\="cost\-display change parameter"\>
+<span class\="cost\-label"\>Δ Volumenstrom\:</span\>
+<span class\="cost\-value"\></span>{deltaVol >= 0 ? '+' : ''}${deltaVol.toFixed(0)} m³/h</span>
                 </div>
             `;
+        } else {
+             dom.referenceDetails.innerHTML = `
+                <hr>
+                <div class="cost-display change parameter">
+                    <span class="cost-label">Vergleich zur Referenz (noch nicht gesetzt)</span>
+                </div>
+             `;
         }
-        dom.costDetailsContainer.innerHTML = costHtml;
-        document.getElementById('setReferenceBtn').addEventListener('click', handleSetReference);
     }
 
     function handleSetReference() {
@@ -271,87 +281,24 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.eer.value = 3.5;
         
         dom.volumenstromSlider.max = 20000;
-        dom.volumenstromSlider.value = 5000; 
-        dom.volumenstrom.dispatchEvent(new Event('input'));
-
-        dom.tempZuluftSlider.value = 20.0;
-        dom.tempZuluft.dispatchEvent(new Event('input'));
         
-        dom.rhZuluftSlider.value = 50.0;
-        dom.rhZuluft.dispatchEvent(new Event('input'));
-
+        resetSlidersToRef(true); // Reset to initial defaults
+        
         referenceState = null;
         dom.resetSlidersBtn.disabled = true;
         handleKuehlerToggle();
         handleFeuchteSollChange();
+        setInitialReference(); // Re-set the initial reference for immediate analysis
     }
     
-    function resetSlidersToRef() {
-        if (!referenceState) return;
-        
-        dom.tempZuluft.value = referenceState.temp.toFixed(1);
-        dom.rhZuluft.value = referenceState.rh.toFixed(1);
-        dom.volumenstrom.value = referenceState.vol;
-        
-        dom.tempZuluft.dispatchEvent(new Event('input'));
-        dom.rhZuluft.dispatchEvent(new Event('input'));
-        dom.volumenstrom.dispatchEvent(new Event('input'));
-    }
+    function resetSlidersToRef(toInitialDefaults = false) {
+        let targetState;
+        if(toInitialDefaults || !referenceState) {
+            targetState = { temp: 20.0, rh: 50.0, vol: 5000 };
+        } else {
+            targetState = referenceState;
+        }
 
-    function handleFeuchteSollChange() {
-        const isRh = dom.feuchteSollTyp.value === 'rh';
-        dom.rhZuluft.classList.toggle('hidden', !isRh);
-        dom.xZuluft.classList.toggle('hidden', isRh);
-        dom.rhZuluftSliderGroup.style.display = isRh ? 'block' : 'none';
-        calculateAll();
-    }
-
-    function handleKuehlerToggle() {
-        const isActive = dom.kuehlerAktiv.checked;
-        dom.sollFeuchteWrapper.style.opacity = isActive ? '1' : '0.5';
-        ['feuchteSollTyp', 'rhZuluft', 'xZuluft', 'rhZuluftSlider'].forEach(id => dom[id].disabled = !isActive);
-        dom.rhZuluftSliderGroup.style.opacity = isActive ? '1' : '0.5';
-        calculateAll();
-    }
-
-    function syncInputsAndSliders() {
-        const sync = (slider, input, label, isFloat = false) => {
-            slider.addEventListener('input', () => {
-                const value = isFloat ? parseFloat(slider.value).toFixed(1) : slider.value;
-                input.value = value;
-                label.textContent = value;
-                calculateAll();
-            });
-            input.addEventListener('input', () => {
-                const newValue = parseFloat(input.value);
-                if(isNaN(newValue)) return;
-                
-                if (input.id === 'volumenstrom' && newValue > parseFloat(slider.max)) {
-                    slider.max = newValue;
-                }
-
-                slider.value = newValue;
-                label.textContent = isFloat ? newValue.toFixed(1) : newValue;
-            });
-        };
-        sync(dom.volumenstromSlider, dom.volumenstrom, dom.volumenstromLabel);
-        sync(dom.tempZuluftSlider, dom.tempZuluft, dom.tempZuluftLabel, true);
-        sync(dom.rhZuluftSlider, dom.rhZuluft, dom.rhZuluftLabel, true);
-    }
-    
-    // Use a more targeted approach for listeners
-    const mainInputs = [ dom.tempAussen, dom.rhAussen, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer, dom.xZuluft ];
-    mainInputs.forEach(input => {
-        if (input) input.addEventListener('input', calculateAll);
-    });
-    
-    dom.kuehlerAktiv.addEventListener('change', handleKuehlerToggle);
-    dom.feuchteSollTyp.addEventListener('change', handleFeuchteSollChange);
-    dom.resetBtn.addEventListener('click', resetToDefaults);
-    dom.resetSlidersBtn.addEventListener('click', resetSlidersToRef);
-    
-    syncInputsAndSliders();
-    // Set initial state and run first calculation
-    handleKuehlerToggle();
-    handleFeuchteSollChange();
-});
+        dom.tempZuluft.value = targetState.temp.toFixed(1);
+        dom.rhZuluft.value = targetState.rh.toFixed(1);
+        dom
