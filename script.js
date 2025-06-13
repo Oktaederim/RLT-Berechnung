@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tempZuluftLabel: document.getElementById('tempZuluftLabel'),
         rhZuluftLabel: document.getElementById('rhZuluftLabel'),
         rhZuluftSliderGroup: document.getElementById('rhZuluftSliderGroup'),
+        resetSlidersBtn: document.getElementById('resetSlidersBtn'),
         resultsCard: document.getElementById('results-card'),
         powerDetailsContainer: document.getElementById('power-details'),
         costDetailsContainer: document.getElementById('cost-details'),
@@ -182,8 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (step.name.includes('Vorerhitzer') || step.name.includes('Nacherhitzer')) heizLeistung += step.leistung;
             else if (step.name.includes('Kühler')) kaelteLeistung += step.leistung;
         });
-
-        // --- Render Power Summary ---
+        
         dom.powerDetailsContainer.innerHTML = `
             <div class="cost-display power-summary">
                 <span class="cost-label">Gesamtleistung Wärme:</span>
@@ -195,7 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        // --- Render Cost Details ---
         const kostenHeizung = heizLeistung * inputs.preisWaerme;
         const kostenKuehlung = (kaelteLeistung / inputs.eer) * inputs.preisStrom;
         currentTotalCost = kostenHeizung + kostenKuehlung;
@@ -258,6 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
             rh: parseFloat(dom.rhZuluft.value),
             vol: parseFloat(dom.volumenstrom.value)
         };
+        dom.resetSlidersBtn.disabled = false;
         calculateAll();
     }
     
@@ -275,8 +275,27 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.rhZuluftSlider.value = 50.0; dom.rhZuluftLabel.textContent = '50.0';
 
         referenceState = null;
+        dom.resetSlidersBtn.disabled = true;
         handleKuehlerToggle();
         handleFeuchteSollChange();
+    }
+    
+    function resetSlidersToRef() {
+        if (!referenceState) return;
+        
+        dom.tempZuluft.value = referenceState.temp.toFixed(1);
+        dom.rhZuluft.value = referenceState.rh.toFixed(1);
+        dom.volumenstrom.value = referenceState.vol;
+
+        dom.tempZuluftSlider.value = referenceState.temp;
+        dom.rhZuluftSlider.value = referenceState.rh;
+        dom.volumenstromSlider.value = referenceState.vol;
+
+        dom.tempZuluftLabel.textContent = referenceState.temp.toFixed(1);
+        dom.rhZuluftLabel.textContent = referenceState.rh.toFixed(1);
+        dom.volumenstromLabel.textContent = referenceState.vol;
+
+        calculateAll();
     }
 
     function handleFeuchteSollChange() {
@@ -314,13 +333,16 @@ document.addEventListener('DOMContentLoaded', () => {
         sync(dom.rhZuluftSlider, dom.rhZuluft, dom.rhZuluftLabel, true);
     }
     
-    const allNumberInputs = [ dom.tempAussen, dom.rhAussen, dom.tempZuluft, dom.rhZuluft, dom.xZuluft, dom.volumenstrom, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer ];
-    allNumberInputs.forEach(input => {
+    // Cleaned up event listeners
+    const otherInputs = [ dom.tempAussen, dom.rhAussen, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer, dom.xZuluft ];
+    otherInputs.forEach(input => {
         if (input) input.addEventListener('input', calculateAll);
     });
     
     dom.kuehlerAktiv.addEventListener('change', handleKuehlerToggle);
+    dom.feuchteSollTyp.addEventListener('change', handleFeuchteSollChange);
     dom.resetBtn.addEventListener('click', resetToDefaults);
+    dom.resetSlidersBtn.addEventListener('click', resetSlidersToRef);
     
     syncInputsAndSliders();
     handleKuehlerToggle();
