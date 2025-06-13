@@ -151,6 +151,10 @@ input:checked + .slider:before { transform: translateX(26px); }
     margin-left: auto;
     margin-right: auto;
 }
+.process-step.summary {
+    background-color: #e2f3ff;
+    border-color: var(--primary-color);
+}
 .process-step h4 {
     margin-top: 0;
     display: flex;
@@ -218,6 +222,17 @@ input[type="range"]::-moz-range-thumb {
     margin-bottom: 0.8rem;
     text-align: left;
 }
+.cost-display.power-summary {
+    background-color: #e9ecef;
+    padding: 0.5rem 0.8rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+.cost-display.power-summary .cost-label, .cost-display.power-summary .cost-value {
+    font-weight: bold;
+    color: var(--primary-color);
+    background: none;
+}
 .cost-display.total { font-size: 1.3rem; font-weight: bold; }
 .cost-display .cost-value {
     background: #fff;
@@ -240,7 +255,7 @@ input[type="range"]::-moz-range-thumb {
     background-color: var(--primary-color);
     color: white; border: none; padding: 0.8rem 1.2rem;
     border-radius: 6px; cursor: pointer; font-size: 1rem;
-    font-weight: bold; width: 100%; margin-bottom: 1rem;
+    font-weight: bold; width: 100%; margin: 1rem 0;
     transition: background-color 0.2s;
 }
 #setReferenceBtn:hover { background-color: #0056b3; }
