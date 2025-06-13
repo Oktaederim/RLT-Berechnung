@@ -220,19 +220,17 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.costDetailsContainer.innerHTML = costHtml;
         document.getElementById('setReferenceBtn').addEventListener('click', handleSetReference);
 
-        // --- Render Delta / Change Display ---
-        if (referenceState !== null) {
+        const deltaTemp = inputs.tempZuluft - (referenceState ? referenceState.temp : inputs.tempZuluft);
+        const deltaRh = inputs.rhZuluft - (referenceState ? referenceState.rh : inputs.rhZuluft);
+        const deltaVol = inputs.volumenstrom - (referenceState ? referenceState.vol : inputs.volumenstrom);
+
+        let deltaHtml;
+        if (referenceState) {
             const changeAbs = currentTotalCost - referenceState.cost;
             const changePerc = referenceState.cost > 0 ? (changeAbs / referenceState.cost) * 100 : 0;
             const sign = changeAbs >= 0 ? '+' : '';
             const changeClass = changeAbs < -TOLERANCE ? 'saving' : (changeAbs > TOLERANCE ? 'expense' : '');
-
-            const deltaTemp = inputs.tempZuluft - referenceState.temp;
-            const deltaRh = inputs.rhZuluft - referenceState.rh;
-            const deltaVol = inputs.volumenstrom - referenceState.vol;
-            
-            dom.referenceDetails.innerHTML = `
-                <hr>
+            deltaHtml = `
                 <div class="cost-display change">
                     <span class="cost-label">Δ Kosten:</span>
                     <span class="cost-value <span class="math-inline">\{changeClass\}"\></span>{sign}<span class="math-inline">\{changeAbs\.toFixed\(2\)\} €/h \(</span>{sign}<span class="math-inline">\{changePerc\.toFixed\(1\)\} %\)</span\>
@@ -251,13 +249,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
         } else {
-             dom.referenceDetails.innerHTML = `
-                <hr>
-                <div class="cost-display change parameter">
-                    <span class="cost-label">Vergleich zur Referenz (noch nicht gesetzt)</span>
+            deltaHtml = `
+                 <div class="cost-display change parameter">
+                    <span class="cost-label">Vergleichswerte werden nach Setzen der Referenz angezeigt.</span>
                 </div>
-             `;
+            `;
         }
+        dom.referenceDetails.innerHTML = `<hr>${deltaHtml}`;
     }
 
     function handleSetReference() {
@@ -268,37 +266,11 @@ document.addEventListener('DOMContentLoaded', () => {
             vol: parseFloat(dom.volumenstrom.value)
         };
         dom.resetSlidersBtn.disabled = false;
+        document.getElementById('setReferenceBtn').classList.add('activated');
         calculateAll();
     }
     
     function resetToDefaults() {
         dom.tempAussen.value = 20.0; dom.rhAussen.value = 50.0;
         dom.tempZuluft.value = 20.0; dom.rhZuluft.value = 50.0;
-        dom.xZuluft.value = 7.26; dom.volumenstrom.value = 5000;
-        dom.kuehlerAktiv.checked = true; dom.tempVorerhitzer.value = 5.0;
-        dom.druck.value = 1013.25; dom.feuchteSollTyp.value = 'rh';
-        dom.preisWaerme.value = 0.12; dom.preisStrom.value = 0.30;
-        dom.eer.value = 3.5;
-        
-        dom.volumenstromSlider.max = 20000;
-        
-        resetSlidersToRef(true); // Reset to initial defaults
-        
-        referenceState = null;
-        dom.resetSlidersBtn.disabled = true;
-        handleKuehlerToggle();
-        handleFeuchteSollChange();
-        setInitialReference(); // Re-set the initial reference for immediate analysis
-    }
-    
-    function resetSlidersToRef(toInitialDefaults = false) {
-        let targetState;
-        if(toInitialDefaults || !referenceState) {
-            targetState = { temp: 20.0, rh: 50.0, vol: 5000 };
-        } else {
-            targetState = referenceState;
-        }
-
-        dom.tempZuluft.value = targetState.temp.toFixed(1);
-        dom.rhZuluft.value = targetState.rh.toFixed(1);
-        dom
+        dom.xZuluft.value = 7.26; dom.volumenstrom.value = 50
