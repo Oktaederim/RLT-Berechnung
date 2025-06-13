@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Main Calculation Function ---
     function calculateAll() {
+        // 1. Input Validation
         for (const field of [dom.tempAussen, dom.rhAussen, dom.tempZuluft, dom.rhZuluft, dom.xZuluft, dom.volumenstrom, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer]) {
             if (field && field.offsetParent !== null && field.value === '') {
                 dom.resultsCard.innerHTML = `<div class="process-overview process-error">Fehler: Ein sichtbares Eingabefeld ist leer. Bitte alle Felder ausfüllen.</div>`;
@@ -75,23 +76,20 @@ document.addEventListener('DOMContentLoaded', () => {
             preisWaerme: parseFloat(dom.preisWaerme.value), preisStrom: parseFloat(dom.preisStrom.value),
             eer: parseFloat(dom.eer.value)
         };
-
         if (Object.values(inputs).some(v => isNaN(v) && typeof v === 'number')) {
             dom.resultsCard.innerHTML = `<div class="process-overview process-error">Fehler: Ungültige Zahl in einem Eingabefeld.</div>`;
             return;
         }
 
+        // 2. Process Simulation
         const aussen = { t: inputs.tempAussen, rh: inputs.rhAussen, x: getX(inputs.tempAussen, inputs.rhAussen, inputs.druck) };
         aussen.h = getH(aussen.t, aussen.x);
-
         if (!isFinite(aussen.x)) {
             dom.resultsCard.innerHTML = `<div class="process-overview process-error">Fehler im Außenluft-Zustand. Prüfen Sie Temperatur, Feuchte und Luftdruck.</div>`;
             return;
         }
-
         const massenstrom_kg_s = (inputs.volumenstrom / 3600) * 1.2;
         const zuluftSoll = { t: inputs.tempZuluft };
-
         if (inputs.kuehlerAktiv) {
             if (inputs.feuchteSollTyp === 'rh') { zuluftSoll.rh = inputs.rhZuluft; zuluftSoll.x = getX(zuluftSoll.t, zuluftSoll.rh, inputs.druck); } 
             else { zuluftSoll.x = inputs.xZuluft; zuluftSoll.rh = getRh(zuluftSoll.t, zuluftSoll.x, inputs.druck); }
@@ -122,38 +120,46 @@ document.addEventListener('DOMContentLoaded', () => {
             processSteps.push({ name: '🔥 Nacherhitzer', leistung: leistung, stateAfter: { ...currentState } });
         }
 
+        // 3. Render all outputs
         renderResults(aussen, processSteps);
         calculateAndRenderCosts(processSteps, inputs);
     }
 
+    // --- Render Functions ---
     function renderResults(aussen, steps) {
         let html = `<h2>Anlagenprozess & Zustände</h2>`;
+        const zuluft = steps.length > 0 ? steps[steps.length - 1].stateAfter : aussen;
+        const createResultItem = (label, value, unit) => `<div class="result-item"><span class="label">${label}</span><span class="value">${value} ${unit}</span></div>`;
+        const createStateBlock = (state) => createResultItem('Temperatur', state.t.toFixed(1), '°C') + createResultItem('Relative Feuchte', state.rh.toFixed(1), '%') + createResultItem('Absolute Feuchte', state.x.toFixed(2), 'g/kg') + createResultItem('Enthalpie', state.h.toFixed(2), 'kJ/kg');
+            
         if (steps.length === 0) {
             html += `<div class="process-overview process-success">Idealzustand: Keine Luftbehandlung erforderlich.</div>`;
         } else {
             const overview = steps.map(s => s.name.split(' ')[1]).join(' → ');
             html += `<div class="process-overview process-info">Prozesskette: ${overview}</div>`;
-            const createResultItem = (label, value, unit) => `<div class="result-item"><span class="label">${label}</span><span class="value">${value} ${unit}</span></div>`;
-            const createStateBlock = (state) => createResultItem('Temperatur', state.t.toFixed(1), '°C') + createResultItem('Relative Feuchte', state.rh.toFixed(1), '%') + createResultItem('Absolute Feuchte', state.x.toFixed(2), 'g/kg') + createResultItem('Enthalpie', state.h.toFixed(2), 'kJ/kg');
-            
-            html += `<div class="process-step"><h4>🌍 Außenluft (Start)</h4><div class="result-grid">${createStateBlock(aussen)}</div></div>`;
-            
-            let heizleistungGesamt = 0;
-            let heizschritte = 0;
-            steps.forEach(step => {
-                html += `<div class="process-step"><h4>${step.name}</h4><div class="result-grid">`;
-                if (step.leistung > 0) {
-                    html += createResultItem('Leistung', step.leistung.toFixed(2), 'kW');
-                    if(step.name.includes('hitzer')) { heizleistungGesamt += step.leistung; heizschritte++; }
-                }
-                if (step.kondensat > 0) html += createResultItem('Kondensat', step.kondensat.toFixed(2), 'kg/h');
-                html += `</div><hr><h5>Zustand danach:</h5><div class="result-grid">${createStateBlock(step.stateAfter)}</div></div>`;
-            });
-
-            if(heizschritte > 1) {
-                 html += `<div class="process-step summary"><h4>➕ Gesamt-Heizleistung</h4><div class="result-grid">${createResultItem('Leistung (VE + NE)', heizleistungGesamt.toFixed(2), 'kW')}</div></div>`;
-            }
         }
+        
+        html += `<div class="process-step"><h4>🌍 Außenluft (Start)</h4><div class="result-grid">${createStateBlock(aussen)}</div></div>`;
+            
+        let heizleistungGesamt = 0;
+        let heizschritte = 0;
+
+        steps.forEach(step => {
+            html += `<div class="process-step"><h4>${step.name}</h4><div class="result-grid">`;
+            if (step.leistung > 0) {
+                html += createResultItem('Leistung', step.leistung.toFixed(2), 'kW');
+                if(step.name.includes('hitzer')) { heizleistungGesamt += step.leistung; heizschritte++; }
+            }
+            if (step.kondensat > 0) html += createResultItem('Kondensat', step.kondensat.toFixed(2), 'kg/h');
+            html += `</div><hr><h5>Zustand danach:</h5><div class="result-grid">${createStateBlock(step.stateAfter)}</div></div>`;
+        });
+
+        if(heizschritte > 1) {
+             html += `<div class="process-step summary"><h4>➕ Gesamt-Heizleistung</h4><div class="result-grid">${createResultItem('Leistung (VE + NE)', heizleistungGesamt.toFixed(2), 'kW')}</div></div>`;
+        }
+
+        html += `<div class="process-step"><h4>✅ Erreichte Zuluft</h4><div class="result-grid">${createStateBlock(zuluft)}</div></div>`;
+        
         dom.resultsCard.innerHTML = html;
     }
 
@@ -176,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.kostenGesamt.textContent = `${currentTotalCost.toFixed(2)} €/h`;
         
         dom.setReferenceBtn.className = referenceState ? 'activated' : '';
-        dom.setReferenceBtn.textContent = referenceState ? 'Referenz gesetzt' : 'Referenz festlegen';
+        dom.setReferenceBtn.textContent = referenceState ? 'Neue Referenz setzen' : 'Referenz festlegen';
 
         if (referenceState) {
             dom.referenceDetails.classList.remove('invisible');
@@ -212,6 +218,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function resetToDefaults() {
+        referenceState = null;
+        dom.resetSlidersBtn.disabled = true;
+
         dom.tempAussen.value = 20.0; dom.rhAussen.value = 50.0;
         dom.tempZuluft.value = 20.0; dom.rhZuluft.value = 50.0;
         dom.xZuluft.value = 7.26; dom.volumenstrom.value = 5000;
@@ -222,13 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         dom.volumenstromSlider.max = 20000;
         
-        referenceState = null;
-        dom.resetSlidersBtn.disabled = true;
-        
-        handleKuehlerToggle();
-        handleFeuchteSollChange();
-
-        // Manually update sliders and labels, then do a final calculation
         dom.volumenstromSlider.value = 5000;
         dom.volumenstromLabel.textContent = 5000;
         dom.tempZuluftSlider.value = 20.0;
@@ -236,6 +238,8 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.rhZuluftSlider.value = 50.0;
         dom.rhZuluftLabel.textContent = '50.0';
         
+        handleKuehlerToggle();
+        handleFeuchteSollChange();
         calculateAll();
     }
     
@@ -246,7 +250,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.rhZuluft.value = referenceState.rh.toFixed(1);
         dom.volumenstrom.value = referenceState.vol;
         
-        // Manually update sliders and labels to reflect the change
         dom.tempZuluftSlider.value = referenceState.temp;
         dom.tempZuluftLabel.textContent = referenceState.temp.toFixed(1);
         dom.rhZuluftSlider.value = referenceState.rh;
@@ -301,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- INITIALIZATION ---
     // A clear, non-conflicting setup of event listeners
-    const basicInputs = [ dom.tempAussen, dom.rhAussen, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer, dom.xZuluft ];
+    const basicInputs = [ dom.tempAussen, dom.rhAussen, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer, dom.xZuluft, dom.volumenstrom, dom.tempZuluft, dom.rhZuluft ];
     basicInputs.forEach(input => {
         if (input) input.addEventListener('input', calculateAll);
     });
@@ -313,9 +316,8 @@ document.addEventListener('DOMContentLoaded', () => {
     dom.resetSlidersBtn.addEventListener('click', resetSlidersToRef);
     dom.setReferenceBtn.addEventListener('click', handleSetReference);
     
-    syncInputsAndSliders(); // This handles the three special, synced inputs
+    syncInputsAndSliders();
     
-    // Initial UI setup and one final calculation on load
     handleKuehlerToggle();
     handleFeuchteSollChange();
     calculateAll();
