@@ -86,9 +86,9 @@
 
         <div class="card" id="analysis-card">
             <h2>⚡ Energie- & Kostenanalyse</h2>
-            <div class="grid-container cost-grid">
-                <div class="cost-inputs">
-                    <h4>Kostensätze & Effizienz</h4>
+            <div class="cost-inputs-wrapper">
+                 <h4>Kostensätze & Effizienz</h4>
+                 <div class="grid-container cost-inputs-grid">
                     <div class="input-group">
                         <label for="preisWaerme">Preis Wärme (€/kWh)</label>
                         <input type="number" id="preisWaerme" value="0.12" step="0.01">
@@ -102,6 +102,9 @@
                         <input type="number" id="eer" value="3.5" step="0.1">
                     </div>
                 </div>
+            </div>
+            <hr>
+            <div class="grid-container cost-grid">
                 <div class="slider-section">
                     <div class="section-header">
                         <h4>Sollwert-Anpassung (Live-Analyse)</h4>
@@ -119,6 +122,8 @@
                         <label>Zuluft-Rel. Feuchte: <span id="rhZuluftLabel">50.0</span> %</label>
                         <input type="range" id="rhZuluftSlider" min="30" max="70" step="0.5" value="50.0">
                     </div>
+                    <div id="reference-details">
+                        </div>
                 </div>
                 <div class="cost-output-section">
                     <h4>Leistung & Kosten</h4>
