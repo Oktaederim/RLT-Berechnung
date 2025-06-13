@@ -54,7 +54,7 @@ body {
 }
 
 
-.card-header {
+.card-header, .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -191,7 +191,27 @@ input:checked + .slider:before { transform: translateX(26px); }
 .hidden { display: none !important; }
 
 /* Slider Styles */
-.slider-group { margin-bottom: 1.5rem; }
+.slider-section h4 { margin-bottom: 0; }
+#resetSlidersBtn {
+    font-size: 0.9rem;
+    background: none;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    border-radius: 20px;
+    padding: 0.2rem 0.8rem;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+#resetSlidersBtn:hover:not(:disabled) {
+    background-color: var(--primary-color);
+    color: white;
+}
+#resetSlidersBtn:disabled {
+    border-color: #ccc;
+    color: #ccc;
+    cursor: not-allowed;
+}
+.slider-group { margin-bottom: 1.5rem; margin-top: 1rem;}
 .slider-group label { font-weight: 500; }
 input[type="range"] {
     width: 100%;
@@ -218,7 +238,7 @@ input[type="range"]::-moz-range-thumb {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 1.1rem;
+    font-size: 1rem;
     margin-bottom: 0.8rem;
     text-align: left;
 }
@@ -233,7 +253,7 @@ input[type="range"]::-moz-range-thumb {
     color: var(--primary-color);
     background: none;
 }
-.cost-display.total { font-size: 1.3rem; font-weight: bold; }
+.cost-display.total { font-size: 1.2rem; font-weight: bold; }
 .cost-display .cost-value {
     background: #fff;
     padding: 0.3rem 0.8rem;
@@ -247,7 +267,7 @@ input[type="range"]::-moz-range-thumb {
 .cost-display.total .cost-value { color: var(--danger-color); }
 .cost-display.change { margin-top: 0.5rem; font-size: 1rem; }
 .cost-display.change.parameter { font-size: 0.9rem; color: var(--label-color); margin-bottom: 0.2rem;}
-.cost-display.change .cost-value { font-size: 1.1rem; }
+.cost-display.change .cost-value { font-size: 1rem; }
 .cost-value.saving { color: var(--success-color) !important; }
 .cost-value.expense { color: var(--danger-color) !important; }
 
