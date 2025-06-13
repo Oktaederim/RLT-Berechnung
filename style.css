@@ -27,39 +27,25 @@ body {
     width: 100%;
 }
 
-/* --- Floating Reset Button --- */
-#resetBtn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    font-size: 2rem;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    z-index: 1000;
-    transition: background-color 0.2s, transform 0.2s;
-}
-#resetBtn:hover {
-    background-color: #5a6268;
-    transform: scale(1.05);
-}
-
-
 .card-header, .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
 }
+
+#resetBtn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+#resetBtn:hover { background-color: #5a6268; }
 
 h1, h2, h4 {
     color: var(--primary-color);
@@ -110,7 +96,6 @@ h4 { font-size: 1.1rem; margin-top: 0; color: #333; border-bottom: 1px solid #ee
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
 }
 
-/* --- Toggle Switch Styles --- */
 .main-config-section { padding: 0.5rem; background-color: #fafafa; border-radius: 8px;}
 .switch-container {
     display: flex;
@@ -139,7 +124,6 @@ h4 { font-size: 1.1rem; margin-top: 0; color: #333; border-bottom: 1px solid #ee
 input:checked + .slider { background-color: var(--success-color); }
 input:focus + .slider { box-shadow: 0 0 1px var(--success-color); }
 input:checked + .slider:before { transform: translateX(26px); }
-/* --- End Switch Styles --- */
 
 .process-step {
     border: 1px solid var(--border-color);
@@ -242,6 +226,7 @@ input[type="range"]::-moz-range-thumb {
     font-size: 1rem;
     margin-bottom: 0.8rem;
     text-align: left;
+    gap: 1rem; /* Gap for Safari fix */
 }
 .cost-display.power-summary {
     background-color: #e9ecef;
@@ -259,10 +244,11 @@ input[type="range"]::-moz-range-thumb {
     background: #fff;
     padding: 0.3rem 0.8rem;
     border-radius: 20px;
-    min-width: 80px;
+    min-width: 70px; /* Slightly reduced for mobile */
     text-align: right;
     font-weight: bold;
     white-space: nowrap;
+    flex-shrink: 0; /* Prevents shrinking on mobile */
 }
 .cost-display .cost-label { font-weight: 500;}
 .cost-display.total .cost-value { color: var(--danger-color); }
