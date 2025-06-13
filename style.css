@@ -150,6 +150,12 @@ input:checked + .slider:before { transform: translateX(26px); }
     background-color: #e2f3ff;
     border-color: var(--primary-color);
 }
+.process-step h4 {
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
 .result-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -179,6 +185,7 @@ input:checked + .slider:before { transform: translateX(26px); }
 
 .hidden { display: none !important; }
 
+/* Slider Styles */
 #resetSlidersBtn {
     font-size: 0.9rem;
     background: none;
@@ -221,6 +228,7 @@ input[type="range"]::-moz-range-thumb {
     cursor: pointer; border-radius: 50%;
 }
 
+/* Cost Display */
 .cost-output-section { background: #f0f2f5; padding: 1.5rem; border-radius: 8px; }
 .cost-display {
     display: flex;
