@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- GLOBAL STATE & DOM ELEMENT CACHING ---
     let referenceState = null;
     let currentTotalCost = 0;
 
@@ -28,13 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
         rhZuluftLabel: document.getElementById('rhZuluftLabel'),
         rhZuluftSliderGroup: document.getElementById('rhZuluftSliderGroup'),
         resultsCard: document.getElementById('results-card'),
+        powerDetailsContainer: document.getElementById('power-details'),
         costDetailsContainer: document.getElementById('cost-details'),
     };
 
-    // --- CONSTANTS ---
     const TOLERANCE = 0.01;
 
-    // --- PSYCHROMETRIC HELPER FUNCTIONS ---
     function getPs(T) {
         if (T >= 0) return 611.2 * Math.exp((17.62 * T) / (243.12 + T));
         else return 611.2 * Math.exp((22.46 * T) / (272.62 + T));
@@ -65,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return 1.006 * T + x_kg_kg * (2501 + 1.86 * T);
     }
 
-    // --- MAIN CALCULATION FUNCTION ---
     function calculateAll() {
         for (const field of [dom.tempAussen, dom.rhAussen, dom.tempZuluft, dom.rhZuluft, dom.xZuluft, dom.volumenstrom, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer]) {
             if (field && field.value === '') {
@@ -142,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
         calculateAndRenderCosts(processSteps, inputs);
     }
 
-    // --- RENDER FUNCTIONS ---
     function renderResults(aussen, steps) {
         let html = `<h2>Anlagenprozess & Zustände</h2>`;
         if (steps.length === 0) {
@@ -172,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if(heizschritte > 1) {
-                 html += `<div class="process-step"><h4>➕ Gesamt-Heizleistung</h4><div class="result-grid">`;
+                 html += `<div class="process-step summary"><h4>➕ Gesamt-Heizleistung</h4><div class="result-grid">`;
                  html += createResultItem('Leistung (VE + NE)', heizleistungGesamt.toFixed(2), 'kW');
                  html += `</div></div>`;
             }
@@ -187,22 +183,35 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (step.name.includes('Kühler')) kaelteLeistung += step.leistung;
         });
 
+        // --- Render Power Summary ---
+        dom.powerDetailsContainer.innerHTML = `
+            <div class="cost-display power-summary">
+                <span class="cost-label">Gesamtleistung Wärme:</span>
+                <span class="cost-value">${heizLeistung.toFixed(2)} kW</span>
+            </div>
+            <div class="cost-display power-summary">
+                <span class="cost-label">Gesamtleistung Kälte:</span>
+                <span class="cost-value">${kaelteLeistung.toFixed(2)} kW</span>
+            </div>
+        `;
+
+        // --- Render Cost Details ---
         const kostenHeizung = heizLeistung * inputs.preisWaerme;
         const kostenKuehlung = (kaelteLeistung / inputs.eer) * inputs.preisStrom;
         currentTotalCost = kostenHeizung + kostenKuehlung;
         
         let costHtml = `
             <div class="cost-display">
-                <span class="cost-label">Heizung (VE+NE):</span>
+                <span class="cost-label">Heizkosten:</span>
                 <span class="cost-value">${kostenHeizung.toFixed(2)} €/h</span>
             </div>
             <div class="cost-display">
-                <span class="cost-label">Kühlung:</span>
+                <span class="cost-label">Kühlkosten:</span>
                 <span class="cost-value">${kostenKuehlung.toFixed(2)} €/h</span>
             </div>
             <hr>
             <div class="cost-display total">
-                <span class="cost-label">Aktuelle Gesamtkosten:</span>
+                <span class="cost-label">Gesamtkosten:</span>
                 <span class="cost-value">${currentTotalCost.toFixed(2)} €/h</span>
             </div>
             <hr>
