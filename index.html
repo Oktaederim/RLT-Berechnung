@@ -8,8 +8,6 @@
 </head>
 <body>
 
-<button id="resetBtn" title="Alle Werte auf Standard zurücksetzen">⟲</button>
-
 <div class="container">
     <header>
         <h1>🌬️ RLT-Anlagen Rechner</h1>
@@ -20,6 +18,7 @@
         <div class="card">
             <div class="card-header">
                 <h2>Anlagenkonfiguration & Zustände</h2>
+                <button id="resetBtn" title="Alle Werte auf Standard zurücksetzen">⟲ Reset</button>
             </div>
             <div class="main-config-section">
                 <h4>Hauptkomponenten</h4>
@@ -124,15 +123,51 @@
                         <input type="range" id="rhZuluftSlider" min="30" max="70" step="0.5" value="50.0">
                     </div>
                     <div id="reference-details">
+                        <hr>
+                        <div class="cost-display change">
+                            <span class="cost-label">Δ Kosten:</span>
+                            <span class="cost-value" id="kostenAenderung">--</span>
                         </div>
+                        <div class="cost-display change parameter">
+                            <span class="cost-label">Δ Temperatur:</span>
+                            <span class="cost-value" id="tempAenderung">--</span>
+                        </div>
+                        <div class="cost-display change parameter">
+                            <span class="cost-label">Δ Feuchte:</span>
+                            <span class="cost-value" id="rhAenderung">--</span>
+                        </div>
+                        <div class="cost-display change parameter">
+                            <span class="cost-label">Δ Volumenstrom:</span>
+                            <span class="cost-value" id="volumenAenderung">--</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="cost-output-section">
                     <h4>Leistung & Kosten</h4>
-                    <div id="power-details">
-                        </div>
+                    <div class="cost-display power-summary">
+                        <span class="cost-label">Gesamtleistung Wärme:</span>
+                        <span class="cost-value" id="gesamtleistungWaerme">0.00 kW</span>
+                    </div>
+                    <div class="cost-display power-summary">
+                        <span class="cost-label">Gesamtleistung Kälte:</span>
+                        <span class="cost-value" id="gesamtleistungKaelte">0.00 kW</span>
+                    </div>
                     <hr>
-                    <div id="cost-details">
-                        </div>
+                    <div class="cost-display">
+                        <span class="cost-label">Heizkosten:</span>
+                        <span class="cost-value" id="kostenHeizung">0.00 €/h</span>
+                    </div>
+                    <div class="cost-display">
+                        <span class="cost-label">Kühlkosten:</span>
+                        <span class="cost-value" id="kostenKuehlung">0.00 €/h</span>
+                    </div>
+                    <hr>
+                    <div class="cost-display total">
+                        <span class="cost-label">Gesamtkosten:</span>
+                        <span class="cost-value" id="kostenGesamt">0.00 €/h</span>
+                    </div>
+                    <hr>
+                    <button id="setReferenceBtn">Referenz festlegen</button>
                 </div>
             </div>
         </div>
