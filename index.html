@@ -8,6 +8,8 @@
 </head>
 <body>
 
+<button id="resetBtn" title="Alle Werte auf Standard zurücksetzen">⟲</button>
+
 <div class="container">
     <header>
         <h1>🌬️ RLT-Anlagen Rechner</h1>
@@ -18,7 +20,6 @@
         <div class="card">
             <div class="card-header">
                 <h2>Anlagenkonfiguration & Zustände</h2>
-                <button id="resetBtn" title="Alle Werte auf Standard zurücksetzen">⟲ Reset</button>
             </div>
             <div class="main-config-section">
                 <h4>Hauptkomponenten</h4>
@@ -98,4 +99,49 @@
                         <input type="number" id="preisStrom" value="0.30" step="0.01">
                     </div>
                     <div class="input-group">
-                        <label for="eer">Kälteleistungszahl (EER / COP)</
+                        <label for="eer">Kälteleistungszahl (EER / COP)</label>
+                        <input type="number" id="eer" value="3.5" step="0.1">
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="grid-container cost-grid">
+                <div class="slider-section">
+                    <div class="section-header">
+                        <h4>Sollwert-Anpassung (Live-Analyse)</h4>
+                        <button id="resetSlidersBtn" title="Analyse auf Referenzwerte zurücksetzen" disabled>⟲ Reset Analyse</button>
+                    </div>
+                    <div class="slider-group">
+                        <label>Volumenstrom: <span id="volumenstromLabel">5000</span> m³/h</label>
+                        <input type="range" id="volumenstromSlider" min="1000" max="20000" step="100" value="5000">
+                    </div>
+                     <div class="slider-group">
+                        <label>Zuluft-Temperatur: <span id="tempZuluftLabel">20.0</span> °C</label>
+                        <input type="range" id="tempZuluftSlider" min="18" max="26" step="0.1" value="20.0">
+                    </div>
+                     <div class="slider-group" id="rhZuluftSliderGroup">
+                        <label>Zuluft-Rel. Feuchte: <span id="rhZuluftLabel">50.0</span> %</label>
+                        <input type="range" id="rhZuluftSlider" min="30" max="70" step="0.5" value="50.0">
+                    </div>
+                    <div id="reference-details">
+                        </div>
+                </div>
+                <div class="cost-output-section">
+                    <h4>Leistung & Kosten</h4>
+                    <div id="power-details">
+                        </div>
+                    <hr>
+                    <div id="cost-details">
+                        </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="footer">
+        <p>Profi-Rechner | Erstellt mit Gemini</p>
+    </footer>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
