@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
         rhZuluftSliderGroup: document.getElementById('rhZuluftSliderGroup'),
         resultsCard: document.getElementById('results-card'),
         costDetailsContainer: document.getElementById('cost-details'),
-        setReferenceBtn: document.getElementById('setReferenceBtn'),
     };
 
     // --- CONSTANTS ---
@@ -153,13 +152,30 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `<div class="process-overview process-info">Prozesskette: ${overview}</div>`;
             const createResultItem = (label, value, unit) => `<div class="result-item"><span class="label">${label}</span><span class="value">${value} ${unit}</span></div>`;
             const createStateBlock = (state) => createResultItem('Temperatur', state.t.toFixed(1), '°C') + createResultItem('Relative Feuchte', state.rh.toFixed(1), '%') + createResultItem('Absolute Feuchte', state.x.toFixed(2), 'g/kg') + createResultItem('Enthalpie', state.h.toFixed(2), 'kJ/kg');
+            
             html += `<div class="process-step"><h4>🌍 Außenluft (Start)</h4><div class="result-grid">${createStateBlock(aussen)}</div></div>`;
+            
+            let heizleistungGesamt = 0;
+            let heizschritte = 0;
+
             steps.forEach(step => {
                 html += `<div class="process-step"><h4>${step.name}</h4><div class="result-grid">`;
-                if (step.leistung > 0) html += createResultItem('Leistung', step.leistung.toFixed(2), 'kW');
+                if (step.leistung > 0) {
+                    html += createResultItem('Leistung', step.leistung.toFixed(2), 'kW');
+                    if(step.name.includes('hitzer')) {
+                        heizleistungGesamt += step.leistung;
+                        heizschritte++;
+                    }
+                }
                 if (step.kondensat > 0) html += createResultItem('Kondensat', step.kondensat.toFixed(2), 'kg/h');
                 html += `</div><hr><h5>Zustand danach:</h5><div class="result-grid">${createStateBlock(step.stateAfter)}</div></div>`;
             });
+
+            if(heizschritte > 1) {
+                 html += `<div class="process-step"><h4>➕ Gesamt-Heizleistung</h4><div class="result-grid">`;
+                 html += createResultItem('Leistung (VE + NE)', heizleistungGesamt.toFixed(2), 'kW');
+                 html += `</div></div>`;
+            }
         }
         dom.resultsCard.innerHTML = html;
     }
@@ -190,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="cost-value">${currentTotalCost.toFixed(2)} €/h</span>
             </div>
             <hr>
-            <button id="setReferenceBtn" class="${referenceState ? 'activated' : ''}">${referenceState ? 'Neue Referenz festlegen' : 'Referenz festlegen'}</button>
+            <button id="setReferenceBtn" class="${referenceState ? 'activated' : ''}">${referenceState ? 'Referenz gesetzt' : 'Referenz festlegen'}</button>
         `;
 
         if (referenceState !== null) {
@@ -223,7 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }
         dom.costDetailsContainer.innerHTML = costHtml;
-        // Re-add event listener to the new button
         document.getElementById('setReferenceBtn').addEventListener('click', handleSetReference);
     }
 
