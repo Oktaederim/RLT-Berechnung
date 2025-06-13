@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentTotalCost = 0;
 
     const dom = {
-        // ... (alle DOM-Elemente wie vorher)
         tempAussen: document.getElementById('tempAussen'),
         rhAussen: document.getElementById('rhAussen'),
         tempZuluft: document.getElementById('tempZuluft'),
@@ -35,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const TOLERANCE = 0.01;
 
-    // --- Psychrometric Functions (unchanged) ---
     function getPs(T) {
         if (T >= 0) return 611.2 * Math.exp((17.62 * T) / (243.12 + T));
         else return 611.2 * Math.exp((22.46 * T) / (272.62 + T));
@@ -66,10 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return 1.006 * T + x_kg_kg * (2501 + 1.86 * T);
     }
 
-    // --- Main Calculation Function ---
     function calculateAll() {
         for (const field of [dom.tempAussen, dom.rhAussen, dom.tempZuluft, dom.rhZuluft, dom.xZuluft, dom.volumenstrom, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer]) {
-            if (field && field.offsetParent !== null && field.value === '') { // check if visible
+            if (field && field.offsetParent !== null && field.value === '') {
                 dom.resultsCard.innerHTML = `<div class="process-overview process-error">Fehler: Ein sichtbares Eingabefeld ist leer. Bitte alle Felder ausfüllen.</div>`;
                 return;
             }
@@ -273,6 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.preisWaerme.value = 0.12; dom.preisStrom.value = 0.30;
         dom.eer.value = 3.5;
         
+        dom.volumenstromSlider.max = 20000; // Reset max value
         dom.volumenstromSlider.value = 5000; dom.volumenstromLabel.textContent = 5000;
         dom.tempZuluftSlider.value = 20.0; dom.tempZuluftLabel.textContent = '20.0';
         dom.rhZuluftSlider.value = 50.0; dom.rhZuluftLabel.textContent = '50.0';
@@ -290,13 +288,10 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.rhZuluft.value = referenceState.rh.toFixed(1);
         dom.volumenstrom.value = referenceState.vol;
 
-        dom.tempZuluftSlider.value = referenceState.temp;
-        dom.rhZuluftSlider.value = referenceState.rh;
-        dom.volumenstromSlider.value = referenceState.vol;
-
-        dom.tempZuluftLabel.textContent = referenceState.temp.toFixed(1);
-        dom.rhZuluftLabel.textContent = referenceState.rh.toFixed(1);
-        dom.volumenstromLabel.textContent = referenceState.vol;
+        // Manually trigger the 'input' event to sync everything
+        dom.tempZuluft.dispatchEvent(new Event('input'));
+        dom.rhZuluft.dispatchEvent(new Event('input'));
+        dom.volumenstrom.dispatchEvent(new Event('input'));
 
         calculateAll();
     }
@@ -319,16 +314,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function syncInputsAndSliders() {
         const sync = (slider, input, label, isFloat = false) => {
+            // Slider changes Input
             slider.addEventListener('input', () => {
                 const value = isFloat ? parseFloat(slider.value).toFixed(1) : slider.value;
                 input.value = value;
                 label.textContent = value;
                 calculateAll();
             });
+            // Input changes Slider
             input.addEventListener('input', () => {
-                slider.value = input.value;
-                label.textContent = input.value;
-                calculateAll();
+                const newValue = parseFloat(input.value);
+                if(isNaN(newValue)) return;
+                
+                // KORREKTUR: Dynamisches Anpassen der Obergrenze des Sliders
+                if (newValue > parseFloat(slider.max)) {
+                    slider.max = newValue;
+                }
+
+                slider.value = newValue;
+                label.textContent = isFloat ? newValue.toFixed(1) : newValue;
+                // calculateAll() is already called by the generic listener
             });
         };
         sync(dom.volumenstromSlider, dom.volumenstrom, dom.volumenstromLabel);
@@ -336,9 +341,9 @@ document.addEventListener('DOMContentLoaded', () => {
         sync(dom.rhZuluftSlider, dom.rhZuluft, dom.rhZuluftLabel, true);
     }
     
-    // Cleaned up event listeners
-    const mainInputs = [ dom.tempAussen, dom.rhAussen, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer, dom.xZuluft ];
-    mainInputs.forEach(input => {
+    // Setup event listeners
+    const allNumberInputs = [ dom.tempAussen, dom.rhAussen, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer, dom.xZuluft, dom.volumenstrom, dom.tempZuluft, dom.rhZuluft ];
+    allNumberInputs.forEach(input => {
         if (input) input.addEventListener('input', calculateAll);
     });
     
