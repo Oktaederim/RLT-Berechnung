@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentTotalCost = 0;
 
     const dom = {
-        // Inputs
         tempAussen: document.getElementById('tempAussen'),
         rhAussen: document.getElementById('rhAussen'),
         tempZuluft: document.getElementById('tempZuluft'),
@@ -18,29 +17,18 @@ document.addEventListener('DOMContentLoaded', () => {
         feuchteSollTyp: document.getElementById('feuchteSollTyp'),
         sollFeuchteWrapper: document.getElementById('sollFeuchteWrapper'),
         resetBtn: document.getElementById('resetBtn'),
-
-        // Cost & Slider Inputs
         preisWaerme: document.getElementById('preisWaerme'),
         preisStrom: document.getElementById('preisStrom'),
         eer: document.getElementById('eer'),
         volumenstromSlider: document.getElementById('volumenstromSlider'),
         tempZuluftSlider: document.getElementById('tempZuluftSlider'),
         rhZuluftSlider: document.getElementById('rhZuluftSlider'),
-
-        // Labels for Sliders
         volumenstromLabel: document.getElementById('volumenstromLabel'),
         tempZuluftLabel: document.getElementById('tempZuluftLabel'),
         rhZuluftLabel: document.getElementById('rhZuluftLabel'),
         rhZuluftSliderGroup: document.getElementById('rhZuluftSliderGroup'),
-
-        // Outputs
         resultsCard: document.getElementById('results-card'),
-        kostenGesamt: document.getElementById('kostenGesamt'),
-        referenceDetails: document.getElementById('reference-details'), // KORRIGIERT: Dieses Element wird jetzt gefunden
-        kostenAenderung: document.getElementById('kostenAenderung'),
-        tempAenderung: document.getElementById('tempAenderung'),
-        rhAenderung: document.getElementById('rhAenderung'),
-        volumenAenderung: document.getElementById('volumenAenderung'),
+        costDetailsContainer: document.getElementById('cost-details'),
         setReferenceBtn: document.getElementById('setReferenceBtn'),
     };
 
@@ -155,6 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
         calculateAndRenderCosts(processSteps, inputs);
     }
 
+    // --- RENDER FUNCTIONS ---
     function renderResults(aussen, steps) {
         let html = `<h2>Anlagenprozess & Zustände</h2>`;
         if (steps.length === 0) {
@@ -186,31 +175,56 @@ document.addEventListener('DOMContentLoaded', () => {
         const kostenKuehlung = (kaelteLeistung / inputs.eer) * inputs.preisStrom;
         currentTotalCost = kostenHeizung + kostenKuehlung;
         
-        dom.kostenHeizung.textContent = `${kostenHeizung.toFixed(2)} €/h`;
-        dom.kostenKuehlung.textContent = `${kostenKuehlung.toFixed(2)} €/h`;
-        dom.kostenGesamt.textContent = `${currentTotalCost.toFixed(2)} €/h`;
+        let costHtml = `
+            <div class="cost-display">
+                <span class="cost-label">Heizung (VE+NE):</span>
+                <span class="cost-value">${kostenHeizung.toFixed(2)} €/h</span>
+            </div>
+            <div class="cost-display">
+                <span class="cost-label">Kühlung:</span>
+                <span class="cost-value">${kostenKuehlung.toFixed(2)} €/h</span>
+            </div>
+            <hr>
+            <div class="cost-display total">
+                <span class="cost-label">Aktuelle Gesamtkosten:</span>
+                <span class="cost-value">${currentTotalCost.toFixed(2)} €/h</span>
+            </div>
+            <hr>
+            <button id="setReferenceBtn" class="${referenceState ? 'activated' : ''}">${referenceState ? 'Neue Referenz festlegen' : 'Referenz festlegen'}</button>
+        `;
 
         if (referenceState !== null) {
-            dom.referenceDetails.classList.remove('hidden');
             const changeAbs = currentTotalCost - referenceState.cost;
             const changePerc = referenceState.cost > 0 ? (changeAbs / referenceState.cost) * 100 : 0;
             const sign = changeAbs >= 0 ? '+' : '';
-            
-            dom.kostenAenderung.textContent = `${sign}${changeAbs.toFixed(2)} €/h (${sign}${changePerc.toFixed(1)} %)`;
-            dom.kostenAenderung.className = 'cost-value';
-            if (changeAbs < -TOLERANCE) dom.kostenAenderung.classList.add('saving');
-            else if (changeAbs > TOLERANCE) dom.kostenAenderung.classList.add('expense');
+            const changeClass = changeAbs < -TOLERANCE ? 'saving' : (changeAbs > TOLERANCE ? 'expense' : '');
 
             const deltaTemp = inputs.tempZuluft - referenceState.temp;
-            dom.tempAenderung.textContent = `${deltaTemp >= 0 ? '+' : ''}${deltaTemp.toFixed(1)} °C`;
             const deltaRh = inputs.rhZuluft - referenceState.rh;
-            dom.rhAenderung.textContent = `${deltaRh >= 0 ? '+' : ''}${deltaRh.toFixed(1)} %`;
             const deltaVol = inputs.volumenstrom - referenceState.vol;
-            dom.volumenAenderung.textContent = `${deltaVol >= 0 ? '+' : ''}${deltaVol.toFixed(0)} m³/h`;
 
-        } else {
-            dom.referenceDetails.classList.add('hidden');
+            costHtml += `
+                <div class="cost-display change">
+                    <span class="cost-label">Δ Kosten:</span>
+                    <span class="cost-value ${changeClass}">${sign}${changeAbs.toFixed(2)} €/h (${sign}${changePerc.toFixed(1)} %)</span>
+                </div>
+                <div class="cost-display change parameter">
+                    <span class="cost-label">Δ Temperatur:</span>
+                    <span class="cost-value">${deltaTemp >= 0 ? '+' : ''}${deltaTemp.toFixed(1)} °C</span>
+                </div>
+                <div class="cost-display change parameter">
+                    <span class="cost-label">Δ Feuchte:</span>
+                    <span class="cost-value">${deltaRh >= 0 ? '+' : ''}${deltaRh.toFixed(1)} %</span>
+                </div>
+                <div class="cost-display change parameter">
+                    <span class="cost-label">Δ Volumenstrom:</span>
+                    <span class="cost-value">${deltaVol >= 0 ? '+' : ''}${deltaVol.toFixed(0)} m³/h</span>
+                </div>
+            `;
         }
+        dom.costDetailsContainer.innerHTML = costHtml;
+        // Re-add event listener to the new button
+        document.getElementById('setReferenceBtn').addEventListener('click', handleSetReference);
     }
 
     function handleSetReference() {
@@ -220,12 +234,6 @@ document.addEventListener('DOMContentLoaded', () => {
             rh: parseFloat(dom.rhZuluft.value),
             vol: parseFloat(dom.volumenstrom.value)
         };
-        dom.setReferenceBtn.textContent = 'Referenz Gesetzt!';
-        dom.setReferenceBtn.classList.add('activated');
-        setTimeout(() => {
-            dom.setReferenceBtn.textContent = 'Neue Referenz festlegen';
-            dom.setReferenceBtn.classList.remove('activated');
-        }, 2000);
         calculateAll();
     }
     
@@ -287,9 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (input) input.addEventListener('input', calculateAll);
     });
     
-    dom.feuchteSollTyp.addEventListener('change', handleFeuchteSollChange);
     dom.kuehlerAktiv.addEventListener('change', handleKuehlerToggle);
-    dom.setReferenceBtn.addEventListener('click', handleSetReference);
     dom.resetBtn.addEventListener('click', resetToDefaults);
     
     syncInputsAndSliders();
