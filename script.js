@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentTotalCost = 0;
 
     const dom = {
+        // ... (alle DOM-Elemente wie vorher)
         tempAussen: document.getElementById('tempAussen'),
         rhAussen: document.getElementById('rhAussen'),
         tempZuluft: document.getElementById('tempZuluft'),
@@ -34,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const TOLERANCE = 0.01;
 
+    // --- Psychrometric Functions (unchanged) ---
     function getPs(T) {
         if (T >= 0) return 611.2 * Math.exp((17.62 * T) / (243.12 + T));
         else return 611.2 * Math.exp((22.46 * T) / (272.62 + T));
@@ -64,10 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return 1.006 * T + x_kg_kg * (2501 + 1.86 * T);
     }
 
+    // --- Main Calculation Function ---
     function calculateAll() {
         for (const field of [dom.tempAussen, dom.rhAussen, dom.tempZuluft, dom.rhZuluft, dom.xZuluft, dom.volumenstrom, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer]) {
-            if (field && field.value === '') {
-                dom.resultsCard.innerHTML = `<div class="process-overview process-error">Fehler: Ein Eingabefeld ist leer. Bitte alle Felder ausfüllen.</div>`;
+            if (field && field.offsetParent !== null && field.value === '') { // check if visible
+                dom.resultsCard.innerHTML = `<div class="process-overview process-error">Fehler: Ein sichtbares Eingabefeld ist leer. Bitte alle Felder ausfüllen.</div>`;
                 return;
             }
         }
@@ -334,8 +337,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Cleaned up event listeners
-    const otherInputs = [ dom.tempAussen, dom.rhAussen, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer, dom.xZuluft ];
-    otherInputs.forEach(input => {
+    const mainInputs = [ dom.tempAussen, dom.rhAussen, dom.tempVorerhitzer, dom.druck, dom.preisWaerme, dom.preisStrom, dom.eer, dom.xZuluft ];
+    mainInputs.forEach(input => {
         if (input) input.addEventListener('input', calculateAll);
     });
     
