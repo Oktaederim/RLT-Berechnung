@@ -169,7 +169,7 @@ input:checked + .slider:before { transform: translateX(26px); }
 .state-node h4, .component-node h5 { margin-bottom: 0.8rem; font-size: 1rem; }
 .final-state { border-color: var(--success-color); border-width: 3px; }
 .arrow {
-    display: none; /* Hide arrows on small screens */
+    display: none; 
 }
 @media (min-width: 992px) {
     .arrow { display: flex; align-items: center; font-size: 2rem; color: #ccc; }
